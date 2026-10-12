@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import itertools
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -205,10 +206,13 @@ meshQualityControls
 }}
 mergeTolerance 1e-6;
 """)
+    # obstacle edges pushed outside the walls must not become snapping features (they dragged wall
+    # points 25 mm outward in the first M0 mesh), so obstacle features are clipped to the domain box
+    clip = f"insideBox ({lo[0]:.9g} {lo[1]:.9g} {lo[2]:.9g}) ({hi[0]:.9g} {hi[1]:.9g} {hi[2]:.9g});"
     write(case / "system" / "surfaceFeatureExtractDict", "dictionary", "surfaceFeatureExtractDict",
           "".join(f"{s}\n{{\n    extractionMethod extractFromSurface;\n    includedAngle 150;\n"
-                  "    subsetFeatures { nonManifoldEdges no; openEdges yes; }\n    writeObj no;\n}\n"
-                  for s in ("domain.stl", "obstacles.stl")))
+                  f"    subsetFeatures {{ nonManifoldEdges no; openEdges yes; {clip if s == 'obstacles.stl' else ''} }}\n"
+                  "    writeObj no;\n}\n" for s in ("domain.stl", "obstacles.stl")))
 
     # --- source cellZones. Heated blockages have no cells inside them, so their heat goes into a
     # one-cell-thick fluid shell around them (box grown by h; the solid interior is not meshed).
@@ -368,6 +372,7 @@ mergeTolerance 1e-6;
           {"numberOfSubdomains": nprocs, "method": "scotch"})
 
     meta = {"case": case.name, "mesh": mesh, "cell_mm": MESH_H_MM[mesh], "background_cells": int(np.prod(n)),
+            "domain_bounds_m": [lo.tolist(), hi.tolist()],
             "ledger_digest": L.digest(), "geometry": geo,
             "physics": {"T0_K": T0, "supply_T_K": Ts, "Q_m3_s": Q, "mdot_kg_s": mdot, "rho0": rho0, "rho_supply": rho_s,
                         "cp": props["cp"], "mu": props["mu"], "Pr": Pr, "M_air": M_AIR, "Sc": SC_LAMINAR,
@@ -388,6 +393,12 @@ mergeTolerance 1e-6;
 def mesh_case(case: Path):
     foam.run(case, ["blockMesh", "surfaceFeatureExtract", "snappyHexMesh -overwrite", "checkMesh", "topoSet"])
     log = (case / "log.checkMesh").read_text()
+    bb = re.search(r"Overall domain bounding box \(([^)]+)\) \(([^)]+)\)", log)
+    meta = json.loads((case / "case_meta.json").read_text())
+    want = np.array(meta["domain_bounds_m"])
+    got = np.array([[float(x) for x in bb.group(1).split()], [float(x) for x in bb.group(2).split()]])
+    if np.abs(got - want).max() > 1e-3:
+        raise foam.FoamError(f"{case.name}: mesh extends beyond the domain: {got.tolist()} vs {want.tolist()}")
     if "Mesh OK" not in log:
         raise foam.FoamError(f"{case.name}: checkMesh did not report 'Mesh OK':\n" +
                              "\n".join([ln for ln in log.splitlines() if "***" in ln][:10]))

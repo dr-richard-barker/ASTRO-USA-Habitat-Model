@@ -72,7 +72,19 @@ new GLTFLoader().load("assets/fpm_m0.glb", gltf => {
     cb.type = "checkbox"; cb.checked = true; cb.onchange = () => groups[name].forEach(m => m.visible = cb.checked);
     lab.append(cb, " " + name + " (" + new Set(groups[name].map(m => m.userData.part)).size + ")"); lay.append(lab);
   }
-  window.__habitat = { parts: [...new Set(Object.values(groups).flat().map(m => m.userData.part))].sort(), size: s.toArray() };
+  window.__habitat = { parts: [...new Set(Object.values(groups).flat().map(m => m.userData.part))].sort(), size: s.toArray(), overlays: [] };
+  // CFD overlays listed in assets/overlays.json (written by habitat/cfd/slices.py)
+  fetch("assets/overlays.json").then(r => r.ok ? r.json() : []).catch(() => []).then(list => {
+    for (const ov of list) new GLTFLoader().load("assets/" + ov.file, g => {
+      g.scene.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ vertexColors:true, side:THREE.DoubleSide });
+                                              o.userData.part = ov.label; } });
+      g.scene.visible = false; scene.add(g.scene); window.__habitat.overlays.push(ov.label);
+      const lab = document.createElement("label"), cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = false; cb.onchange = () => { g.scene.visible = cb.checked;
+        document.getElementById("pick").textContent = cb.checked ? ov.note : ""; };
+      lab.append(cb, " CFD: " + ov.label); document.getElementById("layers").append(lab);
+    });
+  });
 });
 
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
