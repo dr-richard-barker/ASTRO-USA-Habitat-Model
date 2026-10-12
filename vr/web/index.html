@@ -14,6 +14,10 @@
   h1 { font-size:15px; margin:0 0 4px; } p { margin:4px 0; color:var(--muted); font-size:12px; }
   #layers label { display:block; font-size:13px; }
   #pick { margin-top:8px; font-size:13px; min-height:1.4em; color:var(--accent); }
+  #collab { margin-top:10px; padding-top:8px; border-top:1px solid #8884; font-size:13px; }
+  #collab input { width:9em; margin:4px 4px 4px 0; font:inherit; }
+  #collab button { margin:2px 4px 2px 0; font:inherit; cursor:pointer; }
+  .collab-status { color:var(--muted); font-size:12px; margin-top:4px; }
 </style>
 <script type="importmap">
 { "imports": {
@@ -35,6 +39,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { VRButton } from "three/addons/webxr/VRButton.js";
 import { XRControllerModelFactory } from "three/addons/webxr/XRControllerModelFactory.js";
+import { initCollab } from "./collab.js";
 
 const params = new URLSearchParams(location.search);
 const LOD = ["1", "2"].includes(params.get("lod")) ? params.get("lod") : "2";
@@ -136,6 +141,8 @@ new GLTFLoader().load(`assets/fpm_vr_lod${LOD}.glb`, gltf => {
   });
 });
 
+const collab = initCollab({ scene, camera, renderer, ui: document.getElementById("panel"),
+                            getDigest: () => window.__habitat?.digest });
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
 renderer.domElement.addEventListener("click", e => {
   const r = renderer.domElement.getBoundingClientRect();
@@ -143,6 +150,7 @@ renderer.domElement.addEventListener("click", e => {
   ray.setFromCamera(ptr, camera);
   const hit = ray.intersectObjects(scene.children, true).find(h => h.object.visible);
   const m = hit ? hit.object.userData.meta || {} : null;
+  if (collab.onClick(hit, m, t => { document.getElementById("pick").textContent = t; })) return;
   document.getElementById("pick").textContent = m ? `${m.label || m.element} — ${LAYER_NAMES[m.layer] || m.layer}` +
     (m.illustrative ? " (illustrative stand-in, not in the paper)" : "") +
     (m.envelope_only ? " (outer envelope only; placement illustrative)" : "") : "";
@@ -150,7 +158,7 @@ renderer.domElement.addEventListener("click", e => {
 function resize() { const w = el.clientWidth, h = el.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
 document.body.appendChild(VRButton.createButton(renderer));
-renderer.setAnimationLoop(() => { if (renderer.xr.isPresenting) xrFrame(); else controls.update(); renderer.render(scene, camera); });
+renderer.setAnimationLoop(t => { if (renderer.xr.isPresenting) xrFrame(); else controls.update(); collab.tick(t); renderer.render(scene, camera); });
 document.getElementById("lodlink").textContent = LOD === "2" ? "Higher detail (LOD1)" : "Lighter (LOD2)";
 document.getElementById("lodlink").href = "?lod=" + (LOD === "2" ? "1" : "2");
 </script>

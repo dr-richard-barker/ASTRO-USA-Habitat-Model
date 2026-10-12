@@ -1,0 +1,17 @@
+# Multi-user presence + design-review pins for the ASTRO-USA habitat viewer (vr/web).
+# One Durable Object per room (SQLite storage backend: the only kind the Workers Free plan supports).
+name = "astro-usa-habitat-relay"
+main = "src/worker.js"
+compatibility_date = "2026-09-08"
+
+[vars]
+# comma-separated browser origins allowed to open a room socket
+ALLOWED_ORIGINS = "https://dr-richard-barker.github.io,http://localhost:8422,http://127.0.0.1:8422"
+
+[[durable_objects.bindings]]
+name = "ROOM"
+class_name = "Room"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]

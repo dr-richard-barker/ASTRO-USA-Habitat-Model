@@ -1,0 +1,14 @@
+{
+  "name": "astro-usa-habitat-relay",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8797 --ip 127.0.0.1",
+    "test": "node test/smoke.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.129.1"
+  }
+}
