@@ -39,7 +39,7 @@ import { XRControllerModelFactory } from "three/addons/webxr/XRControllerModelFa
 const params = new URLSearchParams(location.search);
 const LOD = ["1", "2"].includes(params.get("lod")) ? params.get("lod") : "2";
 const LAYER_NAMES = { structure:"Container & structure", plants:"Plants & growing systems", water:"Water", power:"Power & electrical",
-  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls" };
+  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls", payloads:"Biomanufacturing payloads (envelopes)" };
 
 const el = document.getElementById("view");
 const renderer = new THREE.WebGLRenderer({ antialias:true });
@@ -144,7 +144,8 @@ renderer.domElement.addEventListener("click", e => {
   const hit = ray.intersectObjects(scene.children, true).find(h => h.object.visible);
   const m = hit ? hit.object.userData.meta || {} : null;
   document.getElementById("pick").textContent = m ? `${m.label || m.element} — ${LAYER_NAMES[m.layer] || m.layer}` +
-    (m.illustrative ? " (illustrative stand-in, not in the paper)" : "") : "";
+    (m.illustrative ? " (illustrative stand-in, not in the paper)" : "") +
+    (m.envelope_only ? " (outer envelope only; placement illustrative)" : "") : "";
 });
 function resize() { const w = el.clientWidth, h = el.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();

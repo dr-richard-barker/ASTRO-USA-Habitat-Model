@@ -87,8 +87,34 @@ def build(L: Ledger | None = None) -> tuple[Ledger, list[Part]]:
 
     # --- Mycoponics enclosure
     lo, hi = _fig2_box(L, "fpm.fig2_zones.mycoponics", 0.0, H * L.num("fpm.mycoponics.enclosure_height_fraction", "-"))
-    parts.append(Part("myco_enclosure", "Mycoponics enclosure (payload bay)", "plants", lo, hi, "blockage",
-                      refs=["fpm.fig2_zones.mycoponics", "fpm.mycoponics.enclosure_height_fraction"]))
+    bay = Part("myco_enclosure", "Mycoponics enclosure (payload bay)", "plants", lo, hi, "blockage",
+               refs=["fpm.fig2_zones.mycoponics", "fpm.mycoponics.enclosure_height_fraction"])
+    parts.append(bay)
+
+    # --- biomanufacturing payloads in the bay: PUBLIC ENVELOPES ONLY (ledger/payloads.yaml)
+    order = L.val("payloads.layout.order")
+    clear = L.num("payloads.layout.frame_clearance", "mm")
+    sizes = [L.val(f"payloads.{k}.envelope") for k in order]
+    inner_x = (bay.hi[0] - bay.lo[0]) - 2 * clear
+    gap = (inner_x - sum(sz[0] for sz in sizes)) / (len(order) + 1)
+    if gap < 0:
+        raise ValueError(f"payloads do not fit in the bay: need {sum(sz[0] for sz in sizes)} mm, have {inner_x} mm")
+    heat = {"bioreactor_rack": L.num("payloads.bioreactor_rack.heat", "W"),
+            "photobioreactor": L.num("payloads.photobioreactor.led_power", "W"),
+            "incubator": L.num("payloads.incubator.heat", "W"), \"sensor_module\": L.num("payloads.sensor_module.heat", "W")}
+    powered = bool(L.val("scenario_m0.payloads_powered"))
+    x = bay.lo[0] + clear + gap
+    yc = (bay.lo[1] + bay.hi[1]) / 2
+    for k, (sx, sy, sz) in zip(order, sizes):
+        if sy > (bay.hi[1] - bay.lo[1]) - 2 * clear or sz > bay.hi[2] - bay.lo[2]:
+            raise ValueError(f"payload {k} ({sx} x {sy} x {sz} mm) does not fit the bay cross-section")
+        parts.append(Part(f"payload_{k}", L.val(f"payloads.{k}.label") if k == "bioreactor_rack" else f"{k} (envelope)",
+                          "payloads", [x, yc - sy / 2, bay.lo[2]], [x + sx, yc + sy / 2, bay.lo[2] + sz], "payload",
+                          refs=[f"payloads.{k}.envelope", "payloads.layout.order", "payloads.layout.frame_clearance"]))
+        x += sx + gap
+    if powered:     # payload heat leaves the closed enclosure into the room: deposit it in the bay's fluid shell
+        bay.heat_W += sum(heat.values())
+        bay.refs.append("scenario_m0.payloads_powered")
 
     # --- bottom-wall row
     lo, hi = _fig2_box(L, "fpm.fig2_zones.battery_cabinet", 0.0, to_mm(L.num("fpm.battery_cabinet.height", "in"), "in"))

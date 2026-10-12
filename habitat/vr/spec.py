@@ -69,7 +69,13 @@ def build_spec() -> dict:
 
     # --- Mycoponics enclosure (payload bay)
     my = P["myco_enclosure"]
-    add("myco_enclosure", "glass_enclosure", "plants", _m(my.lo), _m(my.hi), "myco_enclosure", my.refs, shelves=3)
+    pay = [p for p in parts if p.cfd_role == "payload"]
+    top = max((p.hi[2] for p in pay), default=0.0) / 1000.0
+    add("myco_enclosure", "glass_enclosure", "plants", _m(my.lo), _m(my.hi), "myco_enclosure", my.refs, shelves=3,
+        shelves_above=top)
+    for p in pay:     # PUBLIC envelopes only: outer box, label, ledger refs
+        add(p.id, "payload_envelope", "payloads", _m(p.lo), _m(p.hi), p.id, p.refs, label=p.name,
+            product=p.id.replace("payload_", ""), envelope_only=True)
 
     # --- bottom-wall row
     pr = P["propagation_rack"]

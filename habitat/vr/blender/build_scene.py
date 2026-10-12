@@ -355,9 +355,10 @@ def build_glass_enclosure(e, g):
     for xx in (lo[0], hi[0] - t):
         box("glass_end", (xx, lo[1] + fr, lo[2] + fr), (xx + t, hi[1] - fr, hi[2] - fr), M["glass"], g)
     ns = e["params"]["shelves"]
+    z_min = e["params"].get("shelves_above", 0.0) + 0.12          # keep shelves clear of the payload envelopes
     tubes = empty("mycoponic_tubes", g, {"illustrative": True})
-    for k in range(ns):
-        z = lo[2] + (k + 1) * (hi[2] - lo[2]) / (ns + 1)
+    zs = [z for z in (lo[2] + (k + 1) * (hi[2] - lo[2]) / (ns + 1) for k in range(ns)) if z > z_min]
+    for k, z in enumerate(zs):
         box(f"enclosure_shelf_{k}", (lo[0] + fr, lo[1] + fr, z - VISUAL["shelf"]), (hi[0] - fr, hi[1] - fr, z), M["alu"], g)
         if LOD < 2:
             n = int((hi[0] - lo[0] - 2 * fr) / 0.09)
@@ -500,7 +501,29 @@ def build_mannequin(e, g):
     cyl("head", (cx, cy, h * 0.84), (cx, cy, h * 0.98), w * 0.32, M["skin"], g, segs=max(8, SEG // 2))
 
 
-BUILD = {"shell": build_shell, "floor": build_floor, "partition": build_partition, "grille": build_grille,
+PAYLOAD_TINT = {"bioreactor_rack": (0.85, 0.55, 0.20), "photobioreactor": (0.25, 0.65, 0.35), "incubator": (0.30, 0.50, 0.85),
+                \"sensor_module\": (0.70, 0.35, 0.75)}
+
+
+def build_payload_envelope(e, g):
+    """Public envelope: translucent tinted box + edge frame. Never internal geometry (decision 2026-10-12)."""
+    lo, hi = e["lo"], e["hi"]; p = e["params"]
+    tint = PAYLOAD_TINT.get(p["product"], (0.6, 0.6, 0.6))
+    box(e["id"] + "_envelope", lo, hi, mat(f"payload_{p['product']}", tint, 0.5, 0.0, alpha=0.45), g)
+    t = 0.008
+    edge = mat(f"payload_{p['product']}_edge", tuple(c * 0.6 for c in tint), 0.4)
+    x0, y0, z0 = lo; x1, y1, z1 = hi
+    for (a, b) in [((x0, y0, z0), (x1, y0 + t, z0 + t)), ((x0, y1 - t, z0), (x1, y1, z0 + t)),
+                   ((x0, y0, z1 - t), (x1, y0 + t, z1)), ((x0, y1 - t, z1 - t), (x1, y1, z1)),
+                   ((x0, y0, z0), (x0 + t, y1, z0 + t)), ((x1 - t, y0, z0), (x1, y1, z0 + t)),
+                   ((x0, y0, z1 - t), (x0 + t, y1, z1)), ((x1 - t, y0, z1 - t), (x1, y1, z1))]:
+        box(e["id"] + "_edge", a, b, edge, g)
+    for xx in (x0, x1 - t):
+        for yy in (y0, y1 - t):
+            box(e["id"] + "_post", (xx, yy, z0), (xx + t, yy + t, z1), edge, g)
+
+
+BUILD = {"payload_envelope": build_payload_envelope, "shell": build_shell, "floor": build_floor, "partition": build_partition, "grille": build_grille,
          "box_unit": build_box_unit, "nft_wall": build_nft_wall, "glass_enclosure": build_glass_enclosure,
          "shelf_rack": build_shelf_rack, "kratky": build_kratky, "dutch_bucket": build_dutch,
          "battery_cabinet": build_battery_cabinet, "workbench": build_workbench, "receptacle": build_receptacle,
@@ -510,6 +533,7 @@ root = empty("astro_usa_fpm", None, {"ledger_digest": spec["ledger_digest"], "lo
                                     "note": "Generated from the sourced ledger; illustrative=true marks stand-in equipment"})
 for e in spec["elements"]:
     g = empty(e["id"], root, {"part": e["parent"], "element": e["id"], "layer": e["layer"],
+                              **({"envelope_only": True} if e["params"].get("envelope_only") else {}),
                               "illustrative": bool(e["illustrative"]), "refs": ",".join(e["refs"]),
                               **({"label": e["params"]["label"]} if "label" in e["params"] else {})})
     BUILD[e["type"]](e, g)
@@ -574,6 +598,13 @@ if RENDER:
                 or el_ in ("recp5", "recp6", "recp7", "recp8", "disconnect")):
             o.hide_render = True
     render("cutaway", (Lx * 0.45, -3.2, 4.2), (Lx * 0.45, Ly * 0.6, 0.8), lens=16)
+    bay = next((el for el in spec["elements"] if el["id"] == "myco_enclosure"), None)
+    if bay:     # close-up of the payload bay from the aisle (crew hidden so the envelopes are unobstructed)
+        for o in scene.objects:
+            if o.get("layer") == "crew":
+                o.hide_render = True
+        bx = (bay["lo"][0] + bay["hi"][0]) / 2
+        render("payload_bay", (bx - 0.4, 0.35, 1.55), (bx, bay["lo"][1] + 0.3, 0.45), lens=14)
     for o in scene.objects:
         o.hide_render = False
     render("aisle_from_door", (0.45, Ly * 0.45, 1.62), (Lx, Ly * 0.5, 1.2), lens=16)

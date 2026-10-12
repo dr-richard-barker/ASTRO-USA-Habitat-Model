@@ -22,7 +22,7 @@ from .. import OUT
 from ..provenance import Ledger
 from ..registry import Part, build as build_registry
 
-CAD_ROLES = {"blockage", "source_zone", "opening"}     # parts with a physical/visual body in M0
+CAD_ROLES = {"blockage", "source_zone", "opening", "payload"}     # parts with a physical/visual body in M0
 GRILLE_PLATE_MM = 1.0   # visual-only plate for a grille (the CFD uses the face patch itself); not a design value
 
 

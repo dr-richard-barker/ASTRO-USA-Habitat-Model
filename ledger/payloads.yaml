@@ -1,0 +1,110 @@
+# Bioreactor payloads placed in the FPM's bioreactor bay. GENERIC, UNBRANDED PLACEHOLDERS: outer envelopes, gas
+# ports and loads of representative benchtop equipment, not any particular product. Every value is a declared
+# assumption to be replaced once the team chooses the hardware.
+
+payloads:
+  bioreactor_rack:
+    envelope:
+      value: [951.0, 507.6, 869.0]
+      unit: mm
+      kind: assumed
+      why: "Representative outer envelope of a benchtop rack of ten tubular bioreactor vessels (5 x 2), placeholder until the team chooses the hardware."
+      ask_team: true
+    heat:
+      value: 0.0
+      unit: W
+      kind: assumed
+      why: "No heat budget for the placeholder rack; any pumps, lighting or sterilisation hardware would add to it."
+      ask_team: true
+    co2_per_tube:
+      value: 1.82
+      unit: g/day
+      kind: assumed
+      why: "Planning value for the CO2 released by one small fungal or microbial culture vessel; not a measured rate."
+      ask_team: true
+    vent_flow:
+      value: 0.35
+      unit: L/min
+      kind: assumed
+      why: "Planning value for the headspace sweep that carries each vessel's off-gas out through its vent."
+      ask_team: true
+  photobioreactor:
+    envelope:
+      value: [446.0, 400.0, 408.3]
+      unit: mm
+      kind: assumed
+      why: "Representative outer envelope of a benchtop algae photobioreactor, placeholder until the team chooses the hardware."
+      ask_team: true
+    led_power:
+      value: 16.4
+      unit: W
+      kind: assumed
+      why: "Placeholder electrical power of the culture's LED panel at full output, all of it treated as heat to the room."
+      ask_team: true
+    sparge_flow_max:
+      value: 1.8
+      unit: L/min
+      kind: assumed
+      why: "Placeholder maximum gas flow of the sparging pump; sets how many bioreactor vents it can take in the S6 route that pipes off-gas into it."
+      ask_team: true
+    co2_uptake:
+      value: 0.0
+      unit: g/day
+      kind: assumed
+      why: "CO2 fixation by the algal culture is not modelled yet (no rate for the placeholder)."
+      ask_team: false
+  incubator:
+    envelope:
+      value: [440.0, 275.0, 300.0]
+      unit: mm
+      kind: assumed
+      why: "Representative outer envelope of a benchtop germination / microgreen incubator, placeholder until the team chooses the hardware."
+      ask_team: true
+    heat:
+      value: 0.0
+      unit: W
+      kind: assumed
+      why: "No heat budget for the placeholder incubator."
+      ask_team: true
+  sensor_module:
+    envelope:
+      value: [104.0, 96.0, 96.0]
+      unit: mm
+      kind: assumed
+      why: "Representative outer envelope of a small pumped gas-sampling sensor module, placeholder until the team chooses the hardware."
+      ask_team: true
+    heat:
+      value: 0.0
+      unit: W
+      kind: assumed
+      why: "A small battery sensor module is taken as a negligible heat source."
+      ask_team: false
+  ports:
+    from_json: ledger/payload_ports.json
+    select: payloads
+    mode: ports
+  layout:
+    rotation_deg:
+      value: {bioreactor_rack: 0, photobioreactor: 180, incubator: 0, sensor_module: 0}
+      unit: deg
+      kind: assumed
+      why: "Rotation of each payload about its own vertical axis. The photobioreactor is turned 180 deg so its gas inlet (its +x face) faces the bioreactor rack beside it."
+      ask_team: true
+    offgas_route:
+      value: "bay"
+      unit: '-'
+      kind: assumed
+      why: "Where the bioreactor vents' off-gas goes is a design choice (into the bay -> room air, into the photobioreactor's sparger, or ducted to the NFT wall). Default: vented into the bay; scenario S6 compares the routes."
+      ask_team: true
+    order:
+      value: ["bioreactor_rack", "photobioreactor", "incubator", "sensor_module"]
+      unit: '-'
+      kind: assumed
+      why: "Illustrative arrangement along the bay from the door end: the photobioreactor beside the bioreactor rack (so it can take the rack's off-gas), then the incubator and the sensor module; spaced evenly. Not a team decision."
+      ask_team: true
+    frame_clearance:
+      value: 25.0
+      unit: mm
+      kind: assumed
+      why: "Inside clearance to the enclosure frame posts (matches the VR frame section)."
+      ask_team: false

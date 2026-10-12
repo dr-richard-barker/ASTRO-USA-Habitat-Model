@@ -62,3 +62,9 @@ scenario_m0:
     kind: assumed
     why: "M0 smoke test only: all heat leaves through the HVAC. U-value walls with sol-air temperatures arrive in M2."
     ask_team: false
+  payloads_powered:
+    value: false
+    unit: '-'
+    kind: assumed
+    why: "M0 smoke test keeps the payloads unpowered so its heat total (520 W) is unchanged; the payload-siting scenario (S6) switches them on."
+    ask_team: false
