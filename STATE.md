@@ -31,4 +31,6 @@ Plan: `~/.claude/plans/we-ve-been-developing-a-quiet-hare.md` (approved 2026-10-
 - fixes: door hardware was outside the ISO envelope; GPU-instancing holder nodes lacked extras; QA must apply instance
   translations (Blender writes no min/max on them); meshopt dropped (files < 2 MB, keeps QA/viewer decoder-free)
 - viewer: `vr/web` loads LOD2 (or `?lod=1`), layers from extras, click shows element + illustrative flag, CFD overlay
-- next: WebXR session + teleport, Durable Object relay, payload envelopes in the Mycoponics bay, KTX2 when headsets exist
+- WebXR added (VRButton, dolly rig starting at the door end facing the attic, floor-only teleport, snap turn):
+  loads without errors on desktop (button reports 'VR NOT SUPPORTED'); NOT yet tested in a headset (none available)
+- next: Durable Object relay (multi-user), payload envelopes in the Mycoponics bay, KTX2 when headsets exist
