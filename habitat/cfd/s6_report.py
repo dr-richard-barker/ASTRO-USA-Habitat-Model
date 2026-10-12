@@ -28,18 +28,24 @@ from . import post  # noqa: E402
 TOL = 0.01
 
 
+META: dict = {}
+
+
 def _last(cols, arr, name):
-    return float(post._col(cols, arr, name)[-1])
+    """Last value (steady) or time mean over the averaging window (transient)."""
+    return post.window_value(None, META, arr[:, 0], post._col(cols, arr, name))
 
 
 def probe_values(case: Path, field: str) -> list[float]:
     f = sorted((case / "postProcessing" / "probes").glob(f"*/{field}"), key=lambda p: float(p.parent.name))[-1]
-    rows = [ln for ln in f.read_text().splitlines() if ln.strip() and not ln.startswith("#")]
-    return [float(v) for v in rows[-1].split()[1:]]
+    rows = np.array([[float(v) for v in ln.split()] for ln in f.read_text().splitlines()
+                     if ln.strip() and not ln.startswith("#")])
+    return [post.window_value(None, META, rows[:, 0], rows[:, k]) for k in range(1, rows.shape[1])]
 
 
 def run(case: Path) -> dict:
     meta = json.loads((case / "case_meta.json").read_text())
+    META.clear(); META.update(meta)
     ph = meta["physics"]
     mdot = ph["mdot_kg_s"]
     routes = list(meta["tracers"])
@@ -114,7 +120,8 @@ def maps(case: Path, z_m: float | None = None) -> Path:
     routes = list(meta["tracers"])
     fig, axs = plt.subplots(len(routes), 1, figsize=(13, 2.4 * len(routes)))
     for ax, r in zip(np.atleast_1d(axs), routes):
-        v = np.clip(sl.point_data[f"tr_{r}"], 1e-3, None)
+        key = f"tr_{r}Mean" if f"tr_{r}Mean" in sl.point_data else f"tr_{r}"   # time mean when transient
+        v = np.clip(sl.point_data[key], 1e-3, None)
         tc = ax.tripcolor(sl.points[:, 0], sl.points[:, 1], faces, np.log10(v), shading="gouraud", cmap="viridis",
                           vmin=-2, vmax=2)
         ax.set_aspect("equal"); ax.set_title(f"off-gas → {r}: bioreactor CO₂ excess at z = {z_m:.2f} m (log10 ppm)",
