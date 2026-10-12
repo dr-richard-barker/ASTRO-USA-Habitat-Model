@@ -33,7 +33,7 @@ from ..units import to_kg_s
 from . import foam
 from .foam import Raw, write, write_field
 
-MESH_H_MM = {"coarse": 80.0, "medium": 80.0 / 2 ** 0.5, "fine": 40.0}   # review item 8 (ratio sqrt 2)
+MESH_H_MM = {"xcoarse": 80.0 * 2 ** 0.5, "coarse": 80.0, "medium": 80.0 / 2 ** 0.5, "fine": 40.0}   # ratio sqrt 2
 OBSTACLE_EXTEND_MM = 25.0     # obstacles touching the domain walls are pushed through them so no faces coincide
 SC_LAMINAR, SC_TURB = 0.7, 0.7  # Schmidt numbers for scalar diffusivity (alphaD = 1/Sc); declared modelling choice
 FACES = {"xmin": (0, -1), "xmax": (0, 1), "ymin": (1, -1), "ymax": (1, 1), "zmin": (2, -1), "zmax": (2, 1)}
@@ -155,7 +155,7 @@ def s6_tracers(L, parts, h_mm: float) -> tuple[list, dict, dict]:
     return zones, routes, info
 
 
-def build(mesh: str = "coarse", nprocs: int = 4, tag: str = "", scenario: str = "m0") -> Path:
+def build(mesh: str = "coarse", nprocs: int = 4, tag: str = "", scenario: str = "m0", end_iter: int = 4000) -> Path:
     L, parts = build_registry(scenario=scenario)
     case = RUNS / f"fpm_{scenario}_{mesh}{tag}"
     tri = case / "constant" / "triSurface"
@@ -420,7 +420,7 @@ mergeTolerance 1e-6;
     funcs["residuals"] = {"type": "solverInfo", "libs": '("libutilityFunctionObjects.so")', "fields": "(U h p_rgh k omega)"}
     write(case / "system" / "controlDict", "dictionary", "controlDict", {
         "application": "buoyantSimpleFoam", "startFrom": "latestTime", "startTime": 0, "stopAt": "endTime",
-        "endTime": 4000, "deltaT": 1, "writeControl": "timeStep", "writeInterval": 500, "purgeWrite": 2,
+        "endTime": end_iter, "deltaT": 1, "writeControl": "timeStep", "writeInterval": 500, "purgeWrite": 2,
         "writeFormat": "binary", "writePrecision": 8, "writeCompression": "off", "timeFormat": "general",
         "timePrecision": 6, "runTimeModifiable": "true", "functions": funcs})
     write(case / "system" / "fvSchemes", "dictionary", "fvSchemes", {

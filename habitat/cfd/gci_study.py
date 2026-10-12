@@ -27,7 +27,10 @@ from . import foam, post
 from .case import build as build_case, mesh_case
 
 OUT = ROOT / "results" / "cfd"
-MESHES = ("fine", "medium", "coarse")
+# ladder shifted coarser by user decision (2026-10-12): the 80/57/40 mm transient ladder needs ~110 h here.
+# GCI roles (fine, medium, coarse) -> mesh names
+LADDER = {"fine": "medium", "medium": "coarse", "coarse": "xcoarse"}       # 57 / 80 / 113 mm
+MESHES = tuple(LADDER)
 
 
 # ----------------------------------------------------------------------------- Celik 2008 (ported unchanged)
@@ -77,8 +80,9 @@ def quantities(case: Path) -> dict:
     vol = vol.compute_cell_sizes(length=False, area=False, volume=True)
     c = vol.cell_centers().points
     V = vol.cell_data["Volume"]
-    T, co2, h2o, age = (np.asarray(vol.cell_data[k]) for k in ("T", "dCO2", "dH2O", "AoA"))
-    U = np.linalg.norm(np.asarray(vol.cell_data["U"]), axis=1)
+    f = lambda k: np.asarray(vol.cell_data[f"{k}Mean"] if f"{k}Mean" in vol.cell_data.keys() else vol.cell_data[k])  # noqa
+    T, co2, h2o, age = (f(k) for k in ("T", "dCO2", "dH2O", "AoA"))
+    U = np.linalg.norm(f("U"), axis=1)
     _, parts = build_registry()
     P = {p.id: p for p in parts}
 
@@ -101,9 +105,10 @@ def quantities(case: Path) -> dict:
     y_aisle = (P["crew_1"].lo[1] + P["crew_1"].hi[1]) / 2000
     for x in (2.0, 5.0, 8.0):
         s = pv.PolyData(np.array([[x, y_aisle, 1.1]])).sample(pts_vol)
-        q[f"aisle_x{x:g}:T_excess_K"] = float(s.point_data["T"][0] - Ts)
-        q[f"aisle_x{x:g}:dCO2_ppm"] = float(s.point_data["dCO2"][0])
-        q[f"aisle_x{x:g}:U_m_s"] = float(np.linalg.norm(s.point_data["U"][0]))
+        g = lambda k: s.point_data[f"{k}Mean"] if f"{k}Mean" in s.point_data.keys() else s.point_data[k]  # noqa
+        q[f"aisle_x{x:g}:T_excess_K"] = float(g("T")[0] - Ts)
+        q[f"aisle_x{x:g}:dCO2_ppm"] = float(g("dCO2")[0])
+        q[f"aisle_x{x:g}:U_m_s"] = float(np.linalg.norm(g("U")[0]))
     return {"iteration": it, "quantities": q}
 
 
@@ -139,54 +144,60 @@ def gate_ok(case: Path) -> tuple[bool, dict]:
 
 
 def run_case(mesh: str) -> Path:
-    case = RUNS / f"fpm_m0_{mesh}"
-    if status(case).startswith("DONE"):
-        return case
-    np_ = ranks()
-    case = build_case(mesh, np_)
-    print(f"[gci] {mesh}: built with {np_} ranks", flush=True)
-    r = subprocess.run([sys.executable, "-m", "habitat.cfd.run", str(case), "--np", str(np_), "--mesh"])
-    if r.returncode != 0:
-        raise RuntimeError(f"{mesh} run failed: {status(case)}")
-    ok, g = gate_ok(case)
-    if not g["gates"].get("steady", False):          # one extension from the latest time
-        cd = case / "system" / "controlDict"
-        cd.write_text(re.sub(r"endTime\s+\d+;", "endTime 8000;", cd.read_text()))
-        foam.run(case, ["decomposePar -force -latestTime", "par:buoyantSimpleFoam", "reconstructPar -latestTime"],
-                 nprocs=np_)
-    return case
+    """Steady initialisation (1500 iterations; only a starting field) then the 3-flush transient run."""
+    from .transient import free_cpus, make as make_tr, solve as solve_tr
+    tr = RUNS / f"fpm_m0_{mesh}_tr"
+    if status(tr).startswith("DONE"):
+        return tr
+    steady = RUNS / f"fpm_m0_{mesh}"
+    if not status(steady).startswith("DONE"):
+        n = free_cpus()
+        steady = build_case(mesh, n, end_iter=1500)
+        print(f"[gci] {mesh}: steady initialisation on {n} ranks", flush=True)
+        r = subprocess.run([sys.executable, "-m", "habitat.cfd.run", str(steady), "--np", str(n), "--mesh"])
+        if r.returncode != 0:
+            raise RuntimeError(f"{mesh} steady initialisation failed: {status(steady)}")
+    n = free_cpus()
+    tr = make_tr(steady, nprocs=n)
+    (tr / "STATUS").write_text("RUNNING 0\n")
+    print(f"[gci] {mesh}: transient on {n} ranks", flush=True)
+    solve_tr(tr, n)
+    (tr / "STATUS").write_text("DONE\n")
+    return tr
 
 
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
-    coarse = RUNS / "fpm_m0_coarse"
-    print("[gci] waiting for run 2 (coarse) ...", flush=True)
-    if not wait_done(coarse):
-        (OUT / "gci_m0_BLOCKED.json").write_text(json.dumps({"reason": f"run 2 did not finish: {status(coarse)}"}))
+    base = RUNS / "fpm_m0_coarse_tr"
+    print("[gci] waiting for the coarse transient run ...", flush=True)
+    if not wait_done(base):
+        (OUT / "gci_m0_BLOCKED.json").write_text(json.dumps({"reason": f"coarse transient did not finish: {status(base)}"}))
         return 1
-    ok, g = gate_ok(coarse)
+    ok, g = gate_ok(base)
     if not ok:
-        (OUT / "gci_m0_BLOCKED.json").write_text(json.dumps({"reason": "run 2 failed its gates", "gates": g["gates"],
-                                                             "rel_err": g["rel_err"]}, indent=1, default=float))
-        print("[gci] BLOCKED: run 2 did not pass its gates", flush=True)
+        (OUT / "gci_m0_BLOCKED.json").write_text(json.dumps({"reason": "coarse transient failed its gates",
+                                                             "gates": g["gates"], "rel_err": g["rel_err"]},
+                                                            indent=1, default=float))
+        print("[gci] BLOCKED: coarse transient did not pass its gates", flush=True)
         return 1
-    cases = {"coarse": coarse}
-    for mesh in ("medium", "fine"):
+    (OUT / "gci_m0_BLOCKED.json").unlink(missing_ok=True)
+    cases = {"coarse": base}
+    for mesh in ("xcoarse", "medium"):
         cases[mesh] = run_case(mesh)
     gates = {m: gate_ok(c)[1]["gates"] for m, c in cases.items()}
     Q = {m: quantities(c) for m, c in cases.items()}
     H = {m: h_of(c) for m, c in cases.items()}
-    rows = {}
-    for k in Q["fine"]["quantities"]:
-        rows[k] = gci3([Q[m]["quantities"][k] for m in MESHES], [H[m][0] for m in MESHES])
-    res = {"meshes": {m: {"h_m": H[m][0], "cells": H[m][1], "iteration": Q[m]["iteration"]} for m in MESHES},
-           "gates": gates, "gci": rows,
-           "all_gates_pass": all(all(v.values()) for v in gates.values())}
+    order = [LADDER[r] for r in MESHES]                       # fine, medium, coarse roles -> mesh names
+    rows = {k: gci3([Q[m]["quantities"][k] for m in order], [H[m][0] for m in order]) for k in Q["coarse"]["quantities"]}
+    res = {"ladder": LADDER, "meshes": {m: {"h_m": H[m][0], "cells": H[m][1], "time": Q[m]["iteration"]} for m in order},
+           "gates": gates, "gci": rows, "all_gates_pass": all(all(v.values()) for v in gates.values()),
+           "note": "time-averaged transient solutions; GCI 'fine' level is the 57 mm mesh"}
     (OUT / "gci_m0.json").write_text(json.dumps(res, indent=1, default=float) + "\n")
-    lines = ["# GCI — M0 baseline (Celik et al. 2008)\n\n",
-             "| Mesh | h (mm) | cells |\n|---|---|---|\n"] + \
-            [f"| {m} | {H[m][0] * 1000:.1f} | {H[m][1]:,} |\n" for m in MESHES] + \
-            ["\n| Quantity | fine | medium | coarse | p | GCI_fine % | convergence |\n|---|---|---|---|---|---|---|\n"] + \
+    lines = ["# GCI — M0 baseline, time-averaged transient (Celik et al. 2008)\n\n",
+             "Ladder shifted coarser by decision (57 / 80 / 113 mm); the 'fine' level is the 57 mm mesh.\n\n",
+             "| Role | Mesh | h (mm) | cells |\n|---|---|---|---|\n"] + \
+            [f"| {r} | {LADDER[r]} | {H[LADDER[r]][0] * 1000:.1f} | {H[LADDER[r]][1]:,} |\n" for r in MESHES] + \
+            ["\n| Quantity | 57 mm | 80 mm | 113 mm | p | GCI_fine % | convergence |\n|---|---|---|---|---|---|---|\n"] + \
             [f"| {k} | {r['phi_fine']:.4g} | {r['phi_medium']:.4g} | {r['phi_coarse']:.4g} | {r['p']:.2f} | "
              f"{r['gci_fine_pct']:.2f} | {r['convergence']} |\n" for k, r in rows.items()] + \
             ["\nAll mesh gates pass: " + str(res["all_gates_pass"]) + "\n"]
