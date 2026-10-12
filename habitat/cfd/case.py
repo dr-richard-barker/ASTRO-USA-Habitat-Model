@@ -304,7 +304,11 @@ mergeTolerance 1e-6;
     write_field(case, "U", "[0 1 -1 0 0 0 0]", "uniform (0 0 0)", U, cls="volVectorField")
     write_field(case, "p", "[1 -1 -2 0 0 0 0]", f"uniform {p0}", p)
     write_field(case, "p_rgh", "[1 -1 -2 0 0 0 0]", f"uniform {p0}", prgh)
-    write_field(case, "T", "[0 0 0 1 0 0 0]", f"uniform {T0}", T)
+    # initial room temperature = energy-balanced return temperature (supply + sources / (mdot cp)). The steady
+    # answer does not depend on it, but starting at the set-point left the room-mean temperature as a very slow
+    # mode: run1 was still 1.8 K high after 3000 iterations (results/cfd/fpm_m0_coarse_run1_*).
+    T_init = Ts + sum(p.heat_W for p in parts) / (mdot * props["cp"])
+    write_field(case, "T", "[0 0 0 1 0 0 0]", f"uniform {T_init}", T)
     write_field(case, "k", "[0 2 -2 0 0 0 0]", f"uniform {kin}", k)
     write_field(case, "omega", "[0 0 -1 0 0 0 0]", "uniform 1", om)
     write_field(case, "nut", "[0 2 -1 0 0 0 0]", "uniform 0", nut)
@@ -341,7 +345,7 @@ mergeTolerance 1e-6;
     funcs["residuals"] = {"type": "solverInfo", "libs": '("libutilityFunctionObjects.so")', "fields": "(U h p_rgh k omega)"}
     write(case / "system" / "controlDict", "dictionary", "controlDict", {
         "application": "buoyantSimpleFoam", "startFrom": "latestTime", "startTime": 0, "stopAt": "endTime",
-        "endTime": 3000, "deltaT": 1, "writeControl": "timeStep", "writeInterval": 500, "purgeWrite": 2,
+        "endTime": 4000, "deltaT": 1, "writeControl": "timeStep", "writeInterval": 500, "purgeWrite": 2,
         "writeFormat": "binary", "writePrecision": 8, "writeCompression": "off", "timeFormat": "general",
         "timePrecision": 6, "runTimeModifiable": "true", "functions": funcs})
     write(case / "system" / "fvSchemes", "dictionary", "fvSchemes", {
@@ -367,7 +371,7 @@ mergeTolerance 1e-6;
         "SIMPLE": {"momentumPredictor": "no", "nNonOrthogonalCorrectors": 0,
                    "pRefPoint": Raw(f"({loc[0]:.6g} {loc[1]:.6g} {loc[2]:.6g})"), "pRefValue": p0},
         "relaxationFactors": {"fields": {"rho": 1.0, "p_rgh": 0.7},
-                              "equations": {"U": 0.3, "h": 0.3, "\"(k|omega)\"": 0.5}}})
+                              "equations": {"U": 0.3, "h": 0.5, "\"(k|omega)\"": 0.5}}})
     write(case / "system" / "decomposeParDict", "dictionary", "decomposeParDict",
           {"numberOfSubdomains": nprocs, "method": "scotch"})
 

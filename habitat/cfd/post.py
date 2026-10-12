@@ -52,7 +52,7 @@ def _col(cols, arr, name):
 
 
 def mesh_volume(case: Path) -> float:
-    m = re.search(r"Total volume = ([0-9.eE+-]+)", (case / "log.checkMesh").read_text())
+    m = re.search(r"Total volume = ([0-9.eE+-]+?)\.?\s", (case / "log.checkMesh").read_text())
     return float(m.group(1))
 
 
@@ -107,11 +107,12 @@ def run(case: Path) -> dict:
            "pass": all(gates.values())}
     m = re.search(r"cells:\s+(\d+)", (case / "log.checkMesh").read_text())
     res["cells"] = int(m.group(1)) if m else None
-    (out / f"{case.name}_gates.json").write_text(json.dumps(res, indent=1) + "\n")
+    (out / f"{case.name}_gates.json").write_text(json.dumps(res, indent=1, default=lambda o: o.item() if hasattr(o, "item") else str(o)) + "\n")
     return res
 
 
 if __name__ == "__main__":
     r = run(Path(sys.argv[1]))
-    print(json.dumps({k: r[k] for k in ("rel_err", "steady", "gates", "pass")}, indent=1))
+    print(json.dumps({k: r[k] for k in ("rel_err", "steady", "gates", "pass")}, indent=1,
+                     default=lambda o: o.item() if hasattr(o, "item") else str(o)))
     sys.exit(0 if r["pass"] else 1)

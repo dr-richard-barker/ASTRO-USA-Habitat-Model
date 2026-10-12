@@ -1,0 +1,40 @@
+{
+ "case": "fpm_m0_coarse",
+ "ledger_digest": "d155b39dccfa43ca",
+ "cells": 255123,
+ "mesh_volume_m3": 63.119809,
+ "got": {
+  "mass_imbalance": 0.0,
+  "heat_removed_W": 822.6458284201395,
+  "co2_removed_mol_s": 0.0005217373907912346,
+  "h2o_removed_mol_s": 0.0024578772869538164,
+  "age_return_s": 438.854536
+ },
+ "want": {
+  "heat_removed_W": 520.0,
+  "co2_removed_mol_s": 0.0005226108730328245,
+  "h2o_removed_mol_s": 0.002460875593598349,
+  "age_return_s": 436.8092671009439
+ },
+ "rel_err": {
+  "heat_removed_W": 0.5820112085002683,
+  "co2_removed_mol_s": -0.0016713816850400323,
+  "h2o_removed_mol_s": -0.0012183901747541029,
+  "age_return_s": 0.004682292829157085
+ },
+ "steady": {
+  "iterations": 3000,
+  "window": 26,
+  "return_T_span_K": 0.1592939999999885,
+  "return_dCO2_span_ppm": 8.395717200000007
+ },
+ "gates": {
+  "mass": true,
+  "heat_removed_W": false,
+  "co2_removed_mol_s": true,
+  "h2o_removed_mol_s": true,
+  "age_return_s": true,
+  "steady": false
+ },
+ "pass": false
+}
