@@ -1,0 +1,22 @@
+[project]
+name = "astro-usa-habitat-model"
+version = "0.1.0"
+description = "Parametric model of the ASTRO-USA Mini-Hab (ICES-2026-251): one sourced ledger -> engineering CAD, CFD (OpenFOAM) and VR scenes"
+requires-python = ">=3.11,<3.12"
+license = "MIT"
+dependencies = [
+  "build123d==0.11.1",
+  "pymupdf>=1.26",
+  "pyyaml>=6",
+  "numpy>=2",
+  "trimesh>=4",
+  "manifold3d>=3",
+  "CoolProp>=6.6",
+  "pytest>=8",
+  "matplotlib>=3.11.2",
+  "pillow>=12.3.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -1,0 +1,442 @@
+{
+ "source": "ICES-2026-251 (55th ICES, 2026), PDF page 8, Figure 2 (dimensioned plan) + Figure 3 (labels)",
+ "method": "vector extraction with PyMuPDF get_drawings(); see sources/extract_fig2.py",
+ "pymupdf_version": "1.28.2",
+ "units": "in",
+ "frame": "origin = top-left inside corner of Figure 2 as printed; +x along length, +y toward the bottom wall of the printed plan",
+ "scale_in_per_pt": {
+  "x": 1.204930813973577,
+  "y": 1.2050133475952844,
+  "used": 1.2049720807844309
+ },
+ "footprint_in": [
+  464.0,
+  92.0
+ ],
+ "colour_labels": {
+  "(0.72, 0.0, 0.36)": "Dead Space",
+  "(1.0, 0.75, 0.5)": "Propagation Station",
+  "(0.0, 0.75, 1.0)": "Kratcky-DWC",
+  "(0.72, 0.36, 0.0)": "Dutch Buckets",
+  "(1.0, 0.0, 0.0)": "Battery Cabinet",
+  "(0.5, 0.0, 1.0)": "Mycoponics\u2122",
+  "(0.45, 0.0, 0.0)": "Attic",
+  "(0.15, 0.58, 0.0)": "Hydroponics",
+  "(1.0, 0.0, 1.0)": "Work Space"
+ },
+ "zones": [
+  {
+   "label": "Dead Space",
+   "colour_rgb": [
+    0.72,
+    0.0,
+    0.36
+   ],
+   "bbox_in": [
+    0.0,
+    0.0,
+    393.01,
+    28.95
+   ]
+  },
+  {
+   "label": "Attic",
+   "colour_rgb": [
+    0.45,
+    0.0,
+    0.0
+   ],
+   "bbox_in": [
+    424.05,
+    0.0,
+    464.02,
+    92.0
+   ]
+  },
+  {
+   "label": "Hydroponics",
+   "colour_rgb": [
+    0.15,
+    0.58,
+    0.0
+   ],
+   "bbox_in": [
+    1.92,
+    3.94,
+    218.02,
+    27.98
+   ]
+  },
+  {
+   "label": "Mycoponics\u2122",
+   "colour_rgb": [
+    0.5,
+    0.0,
+    1.0
+   ],
+   "bbox_in": [
+    271.54,
+    3.94,
+    371.49,
+    27.98
+   ]
+  },
+  {
+   "label": "Battery Cabinet",
+   "colour_rgb": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "bbox_in": [
+    19.5,
+    62.96,
+    68.47,
+    92.0
+   ]
+  },
+  {
+   "label": "Dead Space",
+   "colour_rgb": [
+    0.72,
+    0.0,
+    0.36
+   ],
+   "bbox_in": [
+    136.51,
+    62.96,
+    256.49,
+    92.0
+   ]
+  },
+  {
+   "label": "Dutch Buckets",
+   "colour_rgb": [
+    0.72,
+    0.36,
+    0.0
+   ],
+   "bbox_in": [
+    159.95,
+    62.96,
+    184.0,
+    87.01
+   ]
+  },
+  {
+   "label": "Dutch Buckets",
+   "colour_rgb": [
+    0.72,
+    0.36,
+    0.0
+   ],
+   "bbox_in": [
+    207.96,
+    62.96,
+    232.01,
+    87.01
+   ]
+  },
+  {
+   "label": "Work Space",
+   "colour_rgb": [
+    1.0,
+    0.0,
+    1.0
+   ],
+   "bbox_in": [
+    266.46,
+    62.96,
+    393.01,
+    92.0
+   ]
+  },
+  {
+   "label": "Propagation Station",
+   "colour_rgb": [
+    1.0,
+    0.75,
+    0.5
+   ],
+   "bbox_in": [
+    256.49,
+    69.96,
+    266.46,
+    92.0
+   ]
+  },
+  {
+   "label": "Dead Space",
+   "colour_rgb": [
+    0.72,
+    0.0,
+    0.36
+   ],
+   "bbox_in": [
+    0.0,
+    78.0,
+    19.5,
+    92.0
+   ]
+  },
+  {
+   "label": "Kratcky-DWC",
+   "colour_rgb": [
+    0.0,
+    0.75,
+    1.0
+   ],
+   "bbox_in": [
+    68.47,
+    78.0,
+    136.51,
+    92.0
+   ]
+  }
+ ],
+ "dimension_check": [
+  {
+   "printed_in": 29.0,
+   "dimension_line_in": 29.033,
+   "error_in": 0.033,
+   "ok": true,
+   "page_xy_pt": [
+    71.5,
+    174.3
+   ],
+   "zone_extent_in": 29.04
+  },
+  {
+   "printed_in": 24.0,
+   "dimension_line_in": 24.049,
+   "error_in": 0.049,
+   "ok": true,
+   "page_xy_pt": [
+    92.1,
+    121.1
+   ],
+   "zone_extent_in": 24.05
+  },
+  {
+   "printed_in": 14.0,
+   "dimension_line_in": 13.992,
+   "error_in": -0.008,
+   "ok": true,
+   "page_xy_pt": [
+    92.4,
+    195.8
+   ],
+   "zone_extent_in": 13.99
+  },
+  {
+   "printed_in": 2.0,
+   "dimension_line_in": 1.924,
+   "error_in": -0.076,
+   "ok": true,
+   "page_xy_pt": [
+    93.8,
+    89.6
+   ],
+   "zone_extent_in": 1.92
+  },
+  {
+   "printed_in": 4.0,
+   "dimension_line_in": 3.935,
+   "error_in": -0.065,
+   "ok": true,
+   "page_xy_pt": [
+    104.3,
+    101.6
+   ],
+   "zone_extent_in": 3.94
+  },
+  {
+   "printed_in": 19.5,
+   "dimension_line_in": 19.502,
+   "error_in": 0.002,
+   "ok": true,
+   "page_xy_pt": [
+    120.8,
+    193.8
+   ],
+   "zone_extent_in": 19.5
+  },
+  {
+   "printed_in": 49.0,
+   "dimension_line_in": 48.973,
+   "error_in": -0.027,
+   "ok": true,
+   "page_xy_pt": [
+    149.5,
+    193.8
+   ],
+   "zone_extent_in": 48.97
+  },
+  {
+   "printed_in": 68.0,
+   "dimension_line_in": 68.037,
+   "error_in": 0.037,
+   "ok": true,
+   "page_xy_pt": [
+    198.0,
+    193.8
+   ],
+   "zone_extent_in": 68.04
+  },
+  {
+   "printed_in": 216.0,
+   "dimension_line_in": 216.092,
+   "error_in": 0.092,
+   "ok": true,
+   "page_xy_pt": [
+    202.7,
+    102.0
+   ],
+   "zone_extent_in": 216.09
+  },
+  {
+   "printed_in": 188.0,
+   "dimension_line_in": 188.02,
+   "error_in": 0.02,
+   "ok": true,
+   "page_xy_pt": [
+    246.0,
+    206.2
+   ],
+   "zone_extent_in": 188.02
+  },
+  {
+   "printed_in": 120.0,
+   "dimension_line_in": 119.983,
+   "error_in": -0.017,
+   "ok": true,
+   "page_xy_pt": [
+    276.3,
+    193.8
+   ],
+   "zone_extent_in": 119.98
+  },
+  {
+   "printed_in": 24.0,
+   "dimension_line_in": 24.049,
+   "error_in": 0.049,
+   "ok": true,
+   "page_xy_pt": [
+    276.5,
+    172.2
+   ],
+   "zone_extent_in": 24.05
+  },
+  {
+   "printed_in": 24.0,
+   "dimension_line_in": 24.049,
+   "error_in": 0.049,
+   "ok": true,
+   "page_xy_pt": [
+    295.6,
+    157.3
+   ],
+   "zone_extent_in": 24.05
+  },
+  {
+   "printed_in": 464.0,
+   "dimension_line_in": 464.016,
+   "error_in": 0.016,
+   "ok": true,
+   "page_xy_pt": [
+    304.0,
+    89.6
+   ],
+   "zone_extent_in": 464.02
+  },
+  {
+   "printed_in": 53.5,
+   "dimension_line_in": 53.52,
+   "error_in": 0.02,
+   "ok": true,
+   "page_xy_pt": [
+    316.3,
+    102.0
+   ],
+   "zone_extent_in": 53.52
+  },
+  {
+   "printed_in": 22.0,
+   "dimension_line_in": 22.037,
+   "error_in": 0.037,
+   "ok": true,
+   "page_xy_pt": [
+    335.0,
+    172.0
+   ],
+   "zone_extent_in": 22.04
+  },
+  {
+   "printed_in": 10.0,
+   "dimension_line_in": 9.969,
+   "error_in": -0.031,
+   "ok": true,
+   "page_xy_pt": [
+    350.1,
+    194.1
+   ],
+   "zone_extent_in": 9.97
+  },
+  {
+   "printed_in": 100.0,
+   "dimension_line_in": 99.957,
+   "error_in": -0.043,
+   "ok": true,
+   "page_xy_pt": [
+    378.0,
+    102.0
+   ],
+   "zone_extent_in": 99.95
+  },
+  {
+   "printed_in": 157.5,
+   "dimension_line_in": 157.587,
+   "error_in": 0.087,
+   "ok": true,
+   "page_xy_pt": [
+    397.7,
+    206.2
+   ],
+   "zone_extent_in": 157.59
+  },
+  {
+   "printed_in": 31.0,
+   "dimension_line_in": 31.045,
+   "error_in": 0.045,
+   "ok": true,
+   "page_xy_pt": [
+    452.0,
+    101.6
+   ],
+   "zone_extent_in": 31.04
+  },
+  {
+   "printed_in": 40.0,
+   "dimension_line_in": 39.965,
+   "error_in": -0.035,
+   "ok": true,
+   "page_xy_pt": [
+    481.6,
+    206.2
+   ],
+   "zone_extent_in": 39.97
+  },
+  {
+   "printed_in": 92.0,
+   "dimension_line_in": 91.997,
+   "error_in": -0.003,
+   "ok": true,
+   "page_xy_pt": [
+    518.8,
+    148.1
+   ],
+   "zone_extent_in": 92.0
+  }
+ ],
+ "max_dimension_error_in": 0.092
+}

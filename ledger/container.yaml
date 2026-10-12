@@ -1,0 +1,55 @@
+# 40 ft high-cube dry container shell. Representative manufacturer specification; the FPM's actual unit is
+# not identified in ICES-2026-251 (TEAM_INPUTS: make/model or measured interior).
+container:
+  type:
+    value: "40 ft high-cube dry (ISO 668 type 1AAA)"
+    unit: '-'
+    kind: user_supplied
+    source: "R. Barker, planning conversation"
+    date: 2026-10-12
+  external:
+    value: [12192, 2438, 2896]
+    unit: mm
+    kind: specified
+    source: "SeaCube Containers, '40' High Cube Dry Containers' specification sheet (approximate values)"
+    url: https://seacubecontainers.com/wp-content/uploads/SeaCube-40-High-Cube-Dry-Specs.pdf
+    quote: "External Dimensions ... 12,192 mm 2,438 mm 2,896 mm ... Overall Dimensions 40' x 8' x 9'-6\""
+  internal:
+    value: [12032, 2352, 2698]
+    unit: mm
+    kind: specified
+    source: "SeaCube Containers, '40' High Cube Dry Containers' specification sheet (approximate values)"
+    url: https://seacubecontainers.com/wp-content/uploads/SeaCube-40-High-Cube-Dry-Specs.pdf
+    quote: "Internal Dimensions ... 12,032 mm 2,352 mm 2,698 mm"
+  door_opening:
+    value: [2340, 2585]
+    unit: mm
+    kind: specified
+    source: "SeaCube Containers, '40' High Cube Dry Containers' specification sheet (approximate values)"
+    url: https://seacubecontainers.com/wp-content/uploads/SeaCube-40-High-Cube-Dry-Specs.pdf
+    quote: "Door Opening ... Width 2,340 mm Height 2,585 mm"
+  lining:
+    floor:
+      value: 0.0
+      unit: mm
+      kind: assumed
+      why: "No floor build-up is stated. The Fig 2 width (92 in = 2336.8 mm) is within 15 mm of the bare steel width (2352 mm), suggesting little or no lining."
+      ask_team: true
+    ceiling:
+      value: 0.0
+      unit: mm
+      kind: assumed
+      why: "As lining.floor; clear height therefore taken as the steel interior height."
+      ask_team: true
+  length_discrepancy_placement:
+    value: "door end"
+    unit: '-'
+    kind: assumed
+    why: "Fig 2 length (464 in = 11785.6 mm) is 246.4 mm shorter than the steel interior (12032 mm). Unexplained (end framing? door-end wall?); the gap is placed at the door end for the exterior shell only."
+    ask_team: true
+  roof_thickness:
+    value: 40.0
+    unit: mm
+    kind: assumed
+    why: "The spec gives only external (2896) and internal (2698) heights; the 198 mm difference is split as roof panel + roof rails (this value) and floor structure (the remainder). Affects only the exterior shell, not the CFD domain."
+    ask_team: false

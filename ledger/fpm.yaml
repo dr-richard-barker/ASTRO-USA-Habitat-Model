@@ -1,0 +1,217 @@
+# Food Production Module (FPM) — ASTRO-USA Mini-Hab, first module (a converted 40 ft high-cube container).
+# Every leaf record follows habitat/provenance.py. Quotes are verbatim from the cited source.
+# ICES = Peters J.M., Koenig T.C., ... Barker R., Roberson L. (2026) "Analog Simulation Training and Research
+#        Outpost Utilizing Self-sustaining Architecture: A Testbed for Moon and Mars Technology at Purdue
+#        University", 55th International Conference on Environmental Systems, ICES-2026-251.
+
+fpm:
+  footprint:
+    length:
+      value: 464.0
+      unit: in
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The Food Production Module measures 464 in × 92 in (Figure 2)."
+    width:
+      value: 92.0
+      unit: in
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The Food Production Module measures 464 in × 92 in (Figure 2)."
+
+  # Zone rectangles traced from the PDF's own vector geometry (Fig 2) and labelled from Fig 3.
+  # Frame: inches, origin at the top-left inside corner of Fig 2 as printed, +y toward the printed bottom wall.
+  fig2_zones:
+    from_json: sources/fig2_geometry.json
+    select: zones
+    source: "ICES-2026-251, Figure 2 (dimensioned floor plan) and Figure 3 (labelled layout), PDF page 8"
+    how: "PyMuPDF vector extraction, scale calibrated on the 464 x 92 in outline; all 22 printed dimensions matched their own dimension lines within 0.09 in (sources/extract_fig2.py)"
+
+  hydroponics:
+    towers:
+      value: 27
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "Twenty-seven rows of eleven stacked NFT hydroponic tower assemblies are arranged along the wall (Figure 4)."
+    sites_per_tower:
+      value: 11
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "Twenty-seven rows of eleven stacked NFT hydroponic tower assemblies are arranged along the wall (Figure 4)."
+    canopy_z_bottom:
+      value: 0.75
+      unit: m
+      kind: assumed
+      why: "Fig 4 render shows the 11 planting rows occupying roughly the upper two-thirds of the wall above a floor trough; lowest row height not stated."
+      ask_team: true
+    canopy_z_top:
+      value: 2.45
+      unit: m
+      kind: assumed
+      why: "Fig 4 render: top planting row just below the ceiling (interior height 2.698 m); exact height not stated."
+      ask_team: true
+    trough_height:
+      value: 8.0
+      unit: in
+      kind: assumed
+      why: "Fig 4 render shows a low floor-level collection trough along the hydroponic wall; its size is not dimensioned."
+      ask_team: true
+    trough_depth:
+      value: 10.0
+      unit: in
+      kind: assumed
+      why: "As trough_height; placed against the front edge of the 24 in hydroponics band."
+      ask_team: true
+
+  mycoponics:
+    enclosure_height_fraction:
+      value: 0.58
+      unit: '-'
+      kind: assumed
+      why: "Fig 4 render: floor-standing transparent enclosure roughly 55-60 % of wall height; not dimensioned."
+      ask_team: true
+
+  propagation:
+    levels:
+      value: 10
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The right side of the module includes a propagation station stacked ten levels high (Figure 5)."
+    height_fraction:
+      value: 0.80
+      unit: '-'
+      kind: assumed
+      why: "Fig 5 render: the ten-level rack reaches roughly four-fifths of wall height; not dimensioned."
+      ask_team: true
+
+  kratky:
+    description:
+      value: "1 large floor bucket + 2 shelves x 5 smaller buckets"
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The Kratky DWC system is planned to include one large floor bucket and two shelves with five smaller buckets per shelf."
+    floor_tub_height:
+      value: 12.0
+      unit: in
+      kind: assumed
+      why: "Fig 5 render shows a low rectangular floor tub; height not dimensioned."
+      ask_team: true
+
+  dutch_buckets:
+    count:
+      value: 2
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Figure 5 caption"
+      quote: "The rendering shows the vertically stacked propagation station used for seedling growth, two floor-mounted Dutch buckets, and the planned Kratky DWC system."
+    height:
+      value: 24.0
+      unit: in
+      kind: assumed
+      why: "Fig 5 render draws the buckets as cubes on the 24 x 24 in Fig 2 footprint."
+      ask_team: true
+
+  battery_cabinet:
+    height:
+      value: 48.0
+      unit: in
+      kind: assumed
+      why: "Fig 2 gives only the 49 x 29 in footprint; Fig 5 shows a 4 x 4 wall-mounted battery array. Modelled as a floor cabinet of assumed height."
+      ask_team: true
+
+  workbench:
+    top_height:
+      value: 36.0
+      unit: in
+      kind: assumed
+      why: "Fig 5 render shows a bench in the work space; height not stated. Common standing-bench height assumed."
+      ask_team: true
+
+  attic:
+    purpose:
+      value: "houses HVAC equipment"
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "...a battery cabinet, a workspace, and an attic, which will house HVAC equipment (Figure 3)."
+    is_full_height_compartment:
+      value: true
+      unit: '-'
+      kind: assumed
+      why: "Figs 4-5 renders draw the 40 in attic as a full-height end compartment behind a partition (not a loft); the CFD domain therefore stops at the partition."
+      ask_team: true
+
+  electrical:
+    solar_nominal:
+      value: 4.4
+      unit: kW
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The Food Production Module electrical system is designed for 4.4 kW nominal solar capacity."
+    load_max_steady:
+      value: 450.0
+      unit: W
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The estimated maximum steady power draw is 450 W, with an average load of 350 W and daily energy use of approximately 8 kWh."
+    load_average:
+      value: 350.0
+      unit: W
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The estimated maximum steady power draw is 450 W, with an average load of 350 W and daily energy use of approximately 8 kWh."
+    surge:
+      value: 2.6
+      unit: kW
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The expected simultaneous surge power is about 2.6 kW, so equipment startup will be staggered to limit transient demand."
+    solar_panels:
+      value: 10
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Figure 6 (solar one-line diagram; raster labels)"
+      quote: "SP1 SP2 SP3 SP4 SP5 SP6 SP7 SP8 SP9 SP10"
+    batteries:
+      value: 16
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Figure 6 (solar one-line diagram; raster labels)"
+      quote: "BT01 ... BT16, each labelled 12V"
+    receptacles:
+      value: 8
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "Eight receptacles are distributed across four breaker-protected circuits (Figure 7)."
+    feed_layout:
+      value: "door-side disconnect -> breaker panel at the rear"
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The main feed runs from the door-side disconnect to the breaker panel at the rear of the module"
+    heat_split:
+      value: {hydroponics: 0.50, propagation: 0.20, battery_cabinet: 0.15, workbench: 0.15}
+      unit: 'fraction of load_average'
+      kind: assumed
+      why: "The paper gives total load only. M0 smoke-test split across the powered zones (pumps/lights at the NFT wall and propagation rack, inverter/charger losses at the battery cabinet, sensor computer at the bench) until the team supplies the equipment list."
+      ask_team: true
+
+  door_end:
+    value: "printed left end of Fig 2 (x = 0)"
+    unit: '-'
+    kind: derived
+    source: "ICES-2026-251, Figure 8 and Section V"
+    how: "Fig 8 draws the disconnect at the left end and the breaker panel at the right; Section V puts the disconnect on the door side and the panel at the rear; the attic (Fig 2) is at the right/rear end."
+
+  mission:
+    crew:
+      value: 6
+      unit: '-'
+      kind: specified
+      source: "ICES-2026-251, Section V"
+      quote: "The year-one module is designed to support a crew of six for a two-week mission"

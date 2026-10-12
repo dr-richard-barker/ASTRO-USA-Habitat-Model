@@ -1,0 +1,40 @@
+# Crew metabolic loads. BVAD = Ewert M.K., Chen T.T., Powell C.D. (eds) (2022) Life Support Baseline Values and
+# Assumptions Document, NASA/TP-2015-218570/REV2. Local copy read: Mycoponics_revision/analysis/cache/.
+crew:
+  height:
+    value: 1.75
+    unit: m
+    kind: specified
+    source: "BVAD Rev2, Section 3.3.2 (PDF p. 62)"
+    quote: "the HIDH reference crewmember (1.75 m, 82 kg) are included."
+  awake:
+    sensible_heat:
+      value: 306.0
+      unit: kJ/h
+      kind: specified
+      source: "BVAD Rev2, Table 3-26 Steady State Metabolic Output for all Crewmembers (PDF p. 64)"
+      quote: "Reference CM - Awake 500 306 194 1.33 0.00 0.59 0.69"
+    latent_heat:
+      value: 194.0
+      unit: kJ/h
+      kind: specified
+      source: "BVAD Rev2, Table 3-26 (PDF p. 64)"
+      quote: "Reference CM - Awake 500 306 194 1.33 0.00 0.59 0.69"
+    water_vapour:
+      value: 1.33
+      unit: g/min
+      kind: specified
+      source: "BVAD Rev2, Table 3-26 (PDF p. 64)"
+      quote: "Reference CM - Awake 500 306 194 1.33 0.00 0.59 0.69"
+    co2:
+      value: 0.69
+      unit: g/min
+      kind: specified
+      source: "BVAD Rev2, Table 3-26 (PDF p. 64)"
+      quote: "Reference CM - Awake 500 306 194 1.33 0.00 0.59 0.69"
+  body_box:
+    value: [0.40, 0.25]
+    unit: m
+    kind: assumed
+    why: "Standing crewmember represented as a 1.75 m tall box of this plan size (width x depth) carrying the BVAD sources; body shape not modelled in M0."
+    ask_team: false

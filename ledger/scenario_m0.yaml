@@ -1,0 +1,64 @@
+# M0 smoke-test operating point. Every value here is a declared assumption: the attic HVAC unit is unknown
+# (TEAM_INPUTS #3), so these exist only to prove the pipeline, not to predict the room.
+scenario_m0:
+  crew_on_duty:
+    value: 2
+    unit: '-'
+    kind: assumed
+    why: "Smoke test: two crewmembers working (one at the NFT wall, one at the bench)."
+    ask_team: true
+  crew_x:
+    value: [110.0, 330.0]
+    unit: in
+    kind: assumed
+    why: "Crew positions along the length (Fig 2 frame): in front of the hydroponics and at the work space."
+    ask_team: false
+  hvac:
+    supply_flow:
+      value: 300.0
+      unit: cfm
+      kind: assumed
+      why: "Unknown attic unit; a small ductless split delivers a few hundred cfm. Placeholder until the unit is known; S5 screens the sensitivity."
+      ask_team: true
+    supply_T:
+      value: 18.0
+      unit: C
+      kind: assumed
+      why: "Placeholder coil-leaving temperature for the smoke test."
+      ask_team: true
+    setpoint_T:
+      value: 24.0
+      unit: C
+      kind: assumed
+      why: "Initial room temperature; BVAD Table 3-23 inputs use a 297.2 K (24.05 C) cabin."
+      ask_team: true
+    supply_grille:
+      value: [30.0, 6.0]
+      unit: in
+      kind: assumed
+      why: "Supply grille (width x height) high on the attic partition; size and position unknown."
+      ask_team: true
+    supply_grille_center_z:
+      value: 2.35
+      unit: m
+      kind: assumed
+      why: "Supply high on the partition (split-type head)."
+      ask_team: true
+    return_grille:
+      value: [24.0, 12.0]
+      unit: in
+      kind: assumed
+      why: "Return grille (width x height) low on the attic partition; size and position unknown."
+      ask_team: true
+    return_grille_center_z:
+      value: 0.45
+      unit: m
+      kind: assumed
+      why: "Return low on the partition."
+      ask_team: true
+  walls_adiabatic:
+    value: true
+    unit: '-'
+    kind: assumed
+    why: "M0 smoke test only: all heat leaves through the HVAC. U-value walls with sol-air temperatures arrive in M2."
+    ask_team: false

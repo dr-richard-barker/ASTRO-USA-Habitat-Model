@@ -1,0 +1,26 @@
+# team-copyright source material (ICES-2026-251 PDF/slides) — never published
+sources/private/
+# local builds kept out of the repository
+private_out/
+# generated / large
+runs/
+out/
+*.pyc
+__pycache__/
+.venv/
+.pytest_cache/
+.abai/
+.DS_Store
+node_modules/
+relay/.wrangler/
+relay/.dev.vars
+results/cfd/*.STATUS
+results/cfd/*.driver.log
+manuscript/*.aux
+manuscript/*.bbl
+manuscript/*.blg
+manuscript/*.fdb_latexmk
+manuscript/*.fls
+manuscript/*.log
+manuscript/*.out
+manuscript/*.pdf
