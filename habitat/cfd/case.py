@@ -366,12 +366,14 @@ mergeTolerance 1e-6;
             "p_rgh": {"solver": "GAMG", "smoother": "DIC", "tolerance": 1e-7, "relTol": 0.01},
             "\"(U|h|k|omega)\"": {"solver": "smoothSolver", "smoother": "symGaussSeidel", "tolerance": 1e-8,
                                   "relTol": 0.1},
-            "\"(dCO2|dH2O|AoA)\"": {"solver": "PBiCGStab", "preconditioner": "DILU", "tolerance": 1e-9,
-                                    "relTol": 0.05, "maxIter": 200}},   # steady: converge with the outer loop
+            # steady scalars: Gauss-Seidel smoother (PBiCGStab broke down with a SIGFPE on dH2O in run2)
+            "\"(dCO2|dH2O|AoA)\"": {"solver": "smoothSolver", "smoother": "GaussSeidel", "nSweeps": 2,
+                                    "tolerance": 1e-9, "relTol": 0.05, "maxIter": 100}},
         "SIMPLE": {"momentumPredictor": "no", "nNonOrthogonalCorrectors": 0,
                    "pRefPoint": Raw(f"({loc[0]:.6g} {loc[1]:.6g} {loc[2]:.6g})"), "pRefValue": p0},
         "relaxationFactors": {"fields": {"rho": 1.0, "p_rgh": 0.7},
-                              "equations": {"U": 0.3, "h": 0.5, "\"(k|omega)\"": 0.5}}})
+                              "equations": {"U": 0.3, "h": 0.5, "\"(k|omega)\"": 0.5,
+                                            "\"(dCO2|dH2O|AoA)\"": 0.9}}})
     write(case / "system" / "decomposeParDict", "dictionary", "decomposeParDict",
           {"numberOfSubdomains": nprocs, "method": "scotch"})
 
