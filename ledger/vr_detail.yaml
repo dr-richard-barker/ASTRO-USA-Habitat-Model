@@ -1,0 +1,91 @@
+# Visual detail for the VR scene. Values here shape what people SEE; none feeds a CFD source or boundary
+# condition unless the CFD tier references it explicitly. Equipment not described in ICES-2026-251 is marked
+# illustrative in the scene metadata (node extras) so nobody mistakes it for the team's design.
+
+fig8:
+  receptacle_x:
+    value: [78.7, 159.7, 268.9, 350.0]
+    unit: in
+    kind: derived
+    source: "ICES-2026-251, Figure 8 (receptacle layout; raster, PDF page 11 image xref 73)"
+    how: "Symbol centres located by pixel analysis; scale 2.886 px/in from the 464 in outline (vertical scale agrees within 1 %); +/-2 in. RECP4..1 on the printed top wall, RECP8..5 on the printed bottom wall, assumed same orientation as Fig 2 (disconnect = door end on the left in both)."
+  disconnect_x:
+    value: 20.3
+    unit: in
+    kind: derived
+    source: "ICES-2026-251, Figure 8"
+    how: "Box centre by pixel analysis, printed bottom wall at the door end; +/-2 in."
+  panel_y_from_top:
+    value: [58.0, 76.7]
+    unit: in
+    kind: derived
+    source: "ICES-2026-251, Figure 8"
+    how: "Breaker panel drawn on the rear end wall (inside the attic), spanning these distances from the printed top wall; +/-2 in."
+
+vr:
+  receptacle_height:
+    value: 18.0
+    unit: in
+    kind: assumed
+    why: "Visual only: mounting height not stated; a common receptacle height is used."
+    ask_team: false
+  panel_center_height:
+    value: 1.5
+    unit: m
+    kind: assumed
+    why: "Visual only: breaker panel and disconnect mounting heights not stated."
+    ask_team: false
+  conduit_height:
+    value: 2.35
+    unit: m
+    kind: assumed
+    why: "Visual only: Fig 8 shows circuits running along both long walls to the rear panel; run height not stated."
+    ask_team: false
+  side_corrugation:
+    value: {pitch: 0.278, depth: 0.036, flat_fraction: 0.5}
+    unit: m
+    kind: assumed
+    why: "Visual only: trapezoidal side-panel corrugation proportions typical of dry containers; not measured on the FPM's unit."
+    ask_team: false
+  nft_channel:
+    value: {width: 4.0, depth: 4.0, cup_diameter: 2.0}
+    unit: in
+    kind: assumed
+    why: "Visual only: Fig 4 shows 27 vertical columns of 11 planting holes; channel and net-cup sizes not stated."
+    ask_team: true
+  plant_radius:
+    value: {nft: 0.11, seedling: 0.03, kratky: 0.13, dutch: 0.25}
+    unit: m
+    kind: assumed
+    why: "Visual only: plant canopy radii for leafy greens (NFT, Kratky), seedlings (propagation) and a vining crop (Dutch buckets); crops are not specified in the paper."
+    ask_team: true
+  kratky_shelf_heights:
+    value: [1.0, 1.4]
+    unit: m
+    kind: assumed
+    why: "Fig 5 render shows two wall shelves above the floor tub; heights not stated."
+    ask_team: true
+  kratky_small_bucket:
+    value: 8.0
+    unit: in
+    kind: assumed
+    why: "Fig 5 render: small cube-shaped buckets, five per shelf; size not stated."
+    ask_team: true
+  battery_block:
+    value: [12.0, 6.8, 9.0]
+    unit: in
+    kind: assumed
+    why: "Visual only: 16 x 12 V batteries (Fig 6) drawn as generic 12 V blocks (L x W x H); chemistry and model unknown."
+    ask_team: true
+  solar_panel:
+    value: [1.76, 1.13, 0.035]
+    unit: m
+    kind: assumed
+    why: "Visual only: 10 panels totalling 4.4 kW nominal implies ~440 W each; drawn at a size typical of that class. Model, racking and tilt unknown."
+    ask_team: true
+  workbench_top_thickness:
+    value: 1.5
+    unit: in
+    kind: assumed
+    why: "Visual only."
+    ask_team: false

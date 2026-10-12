@@ -25,7 +25,7 @@
 <div id="view"></div>
 <div id="panel">
   <h1>ASTRO-USA Food Production Module</h1>
-  <p>M0 block model generated from the sourced ledger (ICES-2026-251 Fig. 2 geometry). Drag to orbit, scroll to zoom, click a part.</p>
+  <p>Generated from the sourced ledger (ICES-2026-251). Drag to orbit, scroll to zoom, click anything. <a id="lodlink"></a></p>
   <div id="layers"></div>
   <div id="pick" aria-live="polite"></div>
 </div>
@@ -34,9 +34,10 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-const LAYER = id => id === "container_shell" ? "Container shell" : id.startsWith("crew") ? "Crew"
-  : id.startsWith("hvac") ? "HVAC grilles" : /canopy|zone/.test(id) ? "Source zones" : "Equipment";
-const COLOR = { "Container shell":0x8a96a3, "Crew":0xe0a33a, "HVAC grilles":0x3fb6a8, "Source zones":0x6aa84f, "Equipment":0x3b6ea5 };
+const params = new URLSearchParams(location.search);
+const LOD = ["1", "2"].includes(params.get("lod")) ? params.get("lod") : "2";
+const LAYER_NAMES = { structure:"Container & structure", plants:"Plants & growing systems", water:"Water", power:"Power & electrical",
+  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls" };
 
 const el = document.getElementById("view");
 const renderer = new THREE.WebGLRenderer({ antialias:true });
@@ -44,45 +45,48 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 el.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--bg").trim());
-const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 200);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.03, 200);
 const controls = new OrbitControls(camera, renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 2.2));
-const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(5, 10, 6); scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x556070, 2.0));
+const sun = new THREE.DirectionalLight(0xffffff, 1.4); sun.position.set(6, 12, 4); scene.add(sun);
 
 const groups = {};
-new GLTFLoader().load("assets/fpm_m0.glb", gltf => {
+const meta = o => { let p = o; while (p && !(p.userData && p.userData.element)) p = p.parent; return p ? p.userData : {}; };
+new GLTFLoader().load(`assets/fpm_vr_lod${LOD}.glb`, gltf => {
   const root = gltf.scene;
   root.traverse(o => {
     if (!o.isMesh) return;
-    let n = o; while (n.parent && !n.name) n = n.parent;          // part node carries the registry id
-    let id = n.name; let p = o; while (p && p !== root) { if (p.name && p.name !== "astro_usa_fpm_m0") id = p.name; p = p.parent; }
-    const layer = LAYER(id);
-    o.userData.part = id;
-    o.material = new THREE.MeshStandardMaterial({ color:COLOR[layer], roughness:0.8, side:THREE.DoubleSide,
-      transparent: layer !== "Equipment" && layer !== "Crew", opacity: layer === "Container shell" ? 0.18 : layer === "Source zones" ? 0.35 : 0.9 });
-    (groups[layer] ??= []).push(o);
+    const m = meta(o); o.userData.meta = m;
+    if (o.material) o.material.side = THREE.DoubleSide;
+    (groups[m.layer || "structure"] ??= []).push(o);
   });
   scene.add(root);
   const box = new THREE.Box3().setFromObject(root), c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
-  controls.target.copy(c);
-  camera.position.set(c.x + s.x * 0.15, c.y + s.x * 0.55, c.z + s.x * 0.75);
+  controls.target.set(c.x, 1.0, c.z);
+  camera.position.set(c.x - s.x * 0.08, c.y + s.x * 0.55, c.z + s.x * 0.85);
   const lay = document.getElementById("layers");
   for (const name of Object.keys(groups).sort()) {
     const lab = document.createElement("label"), cb = document.createElement("input");
     cb.type = "checkbox"; cb.checked = true; cb.onchange = () => groups[name].forEach(m => m.visible = cb.checked);
-    lab.append(cb, " " + name + " (" + new Set(groups[name].map(m => m.userData.part)).size + ")"); lay.append(lab);
+    const n = new Set(groups[name].map(m => m.userData.meta.element)).size;
+    lab.append(cb, ` ${LAYER_NAMES[name] || name} (${n})`); lay.append(lab);
   }
-  window.__habitat = { parts: [...new Set(Object.values(groups).flat().map(m => m.userData.part))].sort(), size: s.toArray(), overlays: [] };
-  // CFD overlays listed in assets/overlays.json (written by habitat/cfd/slices.py)
+  const roofLab = document.createElement("label"), roofCb = document.createElement("input");
+  roofCb.type = "checkbox"; roofCb.checked = true;
+  roofCb.onchange = () => root.traverse(o => { if (o.isMesh && (/^roof_panel|^rail_top|^side_wall_ymin/.test(o.name) || o.userData.meta.element === "solar_array")) o.visible = roofCb.checked; });
+  roofLab.append(roofCb, " Roof, solar & near wall (untick to see inside)"); lay.append(roofLab);
+  window.__habitat = { lod: LOD, elements: [...new Set(Object.values(groups).flat().map(m => m.userData.meta.element))].sort(),
+                       size: s.toArray(), overlays: [], digest: root.children[0]?.userData?.ledger_digest,
+                       illustrative: [...new Set(Object.values(groups).flat().filter(m => m.userData.meta.illustrative).map(m => m.userData.meta.element))].sort() };
   fetch("assets/overlays.json").then(r => r.ok ? r.json() : []).catch(() => []).then(list => {
     for (const ov of list) new GLTFLoader().load("assets/" + ov.file, g => {
       g.scene.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ vertexColors:true, side:THREE.DoubleSide });
-                                              o.userData.part = ov.label; } });
+                                              o.userData.meta = { element: ov.label, layer: "cfd" }; } });
       g.scene.visible = false; scene.add(g.scene); window.__habitat.overlays.push(ov.label);
       const lab = document.createElement("label"), cb = document.createElement("input");
       cb.type = "checkbox"; cb.checked = false; cb.onchange = () => { g.scene.visible = cb.checked;
         document.getElementById("pick").textContent = cb.checked ? ov.note : ""; };
-      lab.append(cb, " CFD: " + ov.label); document.getElementById("layers").append(lab);
+      lab.append(cb, " CFD: " + ov.label); lay.append(lab);
     });
   });
 });
@@ -92,12 +96,16 @@ renderer.domElement.addEventListener("click", e => {
   const r = renderer.domElement.getBoundingClientRect();
   ptr.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
   ray.setFromCamera(ptr, camera);
-  const hit = ray.intersectObjects(scene.children, true).find(h => h.object.visible && h.object.userData.part !== "container_shell");
-  document.getElementById("pick").textContent = hit ? "Part: " + hit.object.userData.part : "";
+  const hit = ray.intersectObjects(scene.children, true).find(h => h.object.visible);
+  const m = hit ? hit.object.userData.meta || {} : null;
+  document.getElementById("pick").textContent = m ? `${m.label || m.element} — ${LAYER_NAMES[m.layer] || m.layer}` +
+    (m.illustrative ? " (illustrative stand-in, not in the paper)" : "") : "";
 });
 function resize() { const w = el.clientWidth, h = el.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
 renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+document.getElementById("lodlink").textContent = LOD === "2" ? "Higher detail (LOD1)" : "Lighter (LOD2)";
+document.getElementById("lodlink").href = "?lod=" + (LOD === "2" ? "1" : "2");
 </script>
 </body>
 </html>

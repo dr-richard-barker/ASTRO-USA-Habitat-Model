@@ -23,3 +23,12 @@ Plan: `~/.claude/plans/we-ve-been-developing-a-quiet-hare.md` (approved 2026-10-
 - obstacle feature edges pushed outside the walls dragged wall points 25 mm out -> `insideBox` clip; mesh-bounds gate
 - steady scalar solves to 1e-10 every iteration were ~15x too slow -> relTol 0.05
 - room-mean temperature converges very slowly in steady SIMPLE -> balanced initial T (run2)
+
+## VR scene v0 (started at user request while CFD run2 solves, 2026-10-12)
+- `make vr`: spec (registry + `ledger/vr_detail.yaml`) -> Blender 5.2 procedural builder -> LOD0 172k / LOD1 48k / LOD2 18k tris,
+  GLB + USDZ (usdchecker Success) + FBX + .blend; all gates PASS (`out/vr/VR_QA.json`)
+- Fig 8 receptacle/disconnect/panel positions measured from the raster (2.886 px/in, +/-2 in)
+- fixes: door hardware was outside the ISO envelope; GPU-instancing holder nodes lacked extras; QA must apply instance
+  translations (Blender writes no min/max on them); meshopt dropped (files < 2 MB, keeps QA/viewer decoder-free)
+- viewer: `vr/web` loads LOD2 (or `?lod=1`), layers from extras, click shows element + illustrative flag, CFD overlay
+- next: WebXR session + teleport, Durable Object relay, payload envelopes in the Mycoponics bay, KTX2 when headsets exist
