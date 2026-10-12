@@ -1,0 +1,91 @@
+# Mini-Hab site (ICES-2026-251 Figure 10) at CONCEPT level. Fig 10 is a labelled block diagram, not a scaled plan:
+# only its topology is used (which module is where, what touches what). Module sizes and every interior item are
+# assumptions for design discussion, never the team's design. All interiors are tagged illustrative in the model.
+
+site:
+  fig10_topology:
+    value: "row 1: FPM then BioWaTERR trailer abutting its attic end; row 2 (along the FPM's long side): Crew Quarters then Laboratory Module, touching"
+    unit: '-'
+    kind: derived
+    source: "ICES-2026-251, Figure 10 (slide 15 image)"
+    how: "Box extents by colour on the raster: FPM x 152-1201 px, BioWaTERR 1206-1797, Crew Quarters 12-657, Laboratory 662-1260; rows touch. Drawn heights are not proportional to lengths, so only order and adjacency are used."
+  crew_offset_x:
+    value: -1.627
+    unit: m
+    kind: derived
+    source: "ICES-2026-251, Figure 10"
+    how: "Crew Quarters' left edge is 140 px before the FPM's left (door) end; 140/1049 x 12.192 m (FPM external length). Schematic, +/- 0.3 m at best."
+  module_container:
+    value: "20 ft standard dry"
+    unit: '-'
+    kind: assumed
+    why: "Fig 10 draws the Laboratory and Crew Quarters modules at roughly half to two-thirds of the FPM's length; a 20 ft container is the nearest standard unit. Not stated in the paper."
+    ask_team: true
+  container_20ft:
+    external:
+      value: [6058, 2438, 2591]
+      unit: mm
+      kind: specified
+      source: "SeaCube Containers, 20' Standard Dry Containers specification sheet (approximate values)"
+      url: https://seacubecontainers.com/wp-content/uploads/SeaCube_SpecSheet_20_Standard_Dry.pdf
+      quote: "Length 6,058 mm 19'-11\" Width 2,438 mm 8'-0\" Height 2,591 mm 8'-6\""
+    internal:
+      value: [5898, 2352, 2393]
+      unit: mm
+      kind: specified
+      source: "SeaCube Containers, 20' Standard Dry Containers specification sheet (approximate values)"
+      url: https://seacubecontainers.com/wp-content/uploads/SeaCube_SpecSheet_20_Standard_Dry.pdf
+      quote: "Length 5,898 mm 19'-4\" Width 2,352 mm 7'-9\" Height 2,393 mm 7'-"
+  row_gap:
+    value: 0.0
+    unit: m
+    kind: assumed
+    why: "Fig 10 draws the rows touching. A real site would leave access space between modules; replace with the planned spacing."
+    ask_team: true
+  trailer:
+    length:
+      value: 6.87
+      unit: m
+      kind: derived
+      source: "ICES-2026-251, Figure 10"
+      how: "BioWaTERR box drawn 591 px long against the FPM's 1049 px (12.192 m). Schematic proportion only."
+    width:
+      value: 2.59
+      unit: m
+      kind: assumed
+      why: "Trailer dimensions are in ICES-2026-290 (not available); 102 in (2.59 m) is the usual US road-legal trailer width, used as a placeholder."
+      ask_team: true
+    height:
+      value: 3.5
+      unit: m
+      kind: assumed
+      why: "Placeholder enclosed-trailer height; replace from ICES-2026-290 or the trailer itself."
+      ask_team: true
+  lab_layout:
+    value:
+      - {item: "sink + eyewash", wall: north, x0: 0.3, w: 0.9, d: 0.6, h: 0.9, mat: steel}
+      - {item: "emergency shower", wall: north, x0: 1.35, w: 0.9, d: 0.9, h: 2.2, mat: safety}
+      - {item: "refrigerator + freezer", wall: north, x0: 2.4, w: 0.8, d: 0.7, h: 1.8, mat: white}
+      - {item: "autoclave (benchtop)", wall: north, x0: 3.35, w: 0.7, d: 0.6, h: 1.4, mat: steel}
+      - {item: "biosafety cabinet", wall: north, x0: 4.2, w: 1.3, d: 0.8, h: 2.0, mat: white}
+      - {item: "MABR", wall: south, x0: 0.3, w: 0.8, d: 0.6, h: 1.5, mat: reactor}
+      - {item: "APMBR", wall: south, x0: 1.25, w: 0.8, d: 0.6, h: 1.5, mat: reactor}
+      - {item: "SAMBR", wall: south, x0: 2.2, w: 0.8, d: 0.6, h: 1.5, mat: reactor}
+      - {item: "FMBR", wall: south, x0: 3.15, w: 0.8, d: 0.6, h: 1.5, mat: reactor}
+      - {item: "RO system", wall: south, x0: 4.1, w: 0.6, d: 0.5, h: 1.2, mat: steel}
+      - {item: "bench", wall: south, x0: 4.85, w: 0.9, d: 0.6, h: 0.9, mat: bench}
+    unit: m
+    kind: assumed
+    why: "Concept arrangement of the equipment listed for the Lab and Work Area and the waste-management bioreactor train in Fig 1 (Year-2 Laboratory Module, BSL-2 intent). Positions and sizes are illustrative proportions for discussion only."
+    ask_team: true
+  crew_layout:
+    value:
+      - {item: "bunk stack (2 berths)", wall: north, x0: 0.3, w: 2.0, d: 0.9, h: 1.9, mat: bunk}
+      - {item: "bunk stack (2 berths)", wall: north, x0: 2.45, w: 2.0, d: 0.9, h: 1.9, mat: bunk}
+      - {item: "bunk stack (2 berths)", wall: south, x0: 0.3, w: 2.0, d: 0.9, h: 1.9, mat: bunk}
+      - {item: "lockers (6)", wall: south, x0: 2.45, w: 1.8, d: 0.5, h: 1.9, mat: steel}
+      - {item: "table", wall: north, x0: 4.65, w: 1.0, d: 0.7, h: 0.75, mat: bench}
+    unit: m
+    kind: assumed
+    why: "Concept berthing for the paper's crew of six (two-week mission): three two-berth stacks, lockers and a table. Illustrative only; galley, hygiene and medical spaces of Fig 1 are not yet placed."
+    ask_team: true
