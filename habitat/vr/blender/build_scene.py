@@ -521,6 +521,36 @@ def build_payload_envelope(e, g):
     for xx in (x0, x1 - t):
         for yy in (y0, y1 - t):
             box(e["id"] + "_post", (xx, yy, z0), (xx + t, yy + t, z1), edge, g)
+    for q in p.get("ports", []):
+        build_port_marker(e["id"], q, g)
+
+
+PORT_COLOUR = {"gas_out": (0.85, 0.20, 0.20), "gas_in": (0.20, 0.40, 0.90), "fan_in": (0.20, 0.65, 0.60),
+               "fan_out": (0.20, 0.65, 0.60), "sample": (0.60, 0.30, 0.75)}
+
+
+def build_port_marker(owner, q, parent):
+    """Stub + arrow along the port direction (outward for outlets, inward for inlets); extras carry the port data."""
+    col = mat(f"port_{q['kind']}", PORT_COLOUR.get(q["kind"], (0.5, 0.5, 0.5)), 0.4)
+    pos, d = Vector(q["pos"]), Vector(q["dir"]).normalized()
+    extra = {"port": q["name"], "port_kind": q["kind"],
+             **({"flow_L_min": q["flow_L_min"]} if q.get("flow_L_min") is not None else {}),
+             **({"co2_g_day": q["co2_g_day"]} if q.get("co2_g_day") is not None else {})}
+    pg = empty(f"{owner}_port_{q['name']}", parent, extra)
+    segs = max(6, SEG // 3)
+    cyl("port_stub", pos - d * 0.01, pos + d * 0.03, 0.012, col, pg, segs=segs)
+    tip_base = pos + d * (0.03 if q["kind"] != "gas_in" else 0.09)
+    sign = 1 if q["kind"] != "gas_in" else -1      # inlets: arrow points back into the port
+    v, f = [], []
+    a = tip_base; b = tip_base + d * 0.05 * sign
+    t_ = Vector((1, 0, 0)) if abs(d.x) < 0.9 else Vector((0, 1, 0))
+    u = d.cross(t_).normalized(); w = d.cross(u)
+    for i in range(segs):
+        th = 2 * math.pi * i / segs
+        v.append(a + 0.022 * (math.cos(th) * u + math.sin(th) * w))
+    v.append(b)
+    f = [(i, (i + 1) % segs, segs) for i in range(segs)] + [tuple(reversed(range(segs)))]
+    new_obj("port_arrow", mesh_from("port_arrow", v, f), col, pg)
 
 
 BUILD = {"payload_envelope": build_payload_envelope, "shell": build_shell, "floor": build_floor, "partition": build_partition, "grille": build_grille,

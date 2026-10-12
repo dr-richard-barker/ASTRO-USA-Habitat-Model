@@ -26,8 +26,14 @@ def to_W(value: float, unit: str) -> float:
 
 
 def to_kg_s(value: float, unit: str) -> float:
-    return value * {"kg/s": 1.0, "g/min": G_PER_MIN_TO_KG_S, "g/s": 1e-3, "kg/day": 1 / 86400}[unit]
+    return value * {"kg/s": 1.0, "g/min": G_PER_MIN_TO_KG_S, "g/s": 1e-3, "kg/day": 1 / 86400, "g/day": 1e-3 / 86400}[unit]
 
 
 def to_m3_s(value: float, unit: str) -> float:
     return value * {"m3/s": 1.0, "L/s": 1e-3, "cfm": CFM_TO_M3_S, "m3/h": 1 / 3600}[unit]
+
+
+# --- non-dimensional constants used by the registry (kept here so registry.py stays free of literals)
+HALF_TURN_DEG = 180            # payload rotations allowed: 0 or a half turn (keeps the footprint)
+ENVELOPE_MATCH_TOL_MM = 0.05   # ports must have been derived for the same envelope as the ledger's (rounding)
+EXACT_TOL = 1e-9               # values copied from the same source must agree exactly

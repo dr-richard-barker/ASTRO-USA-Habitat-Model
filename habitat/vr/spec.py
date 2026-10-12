@@ -75,7 +75,8 @@ def build_spec() -> dict:
         shelves_above=top)
     for p in pay:     # PUBLIC envelopes only: outer box, label, ledger refs
         add(p.id, "payload_envelope", "payloads", _m(p.lo), _m(p.hi), p.id, p.refs, label=p.name,
-            product=p.id.replace("payload_", ""), envelope_only=True)
+            product=p.id.replace("payload_", ""), envelope_only=True,
+            ports=[{**q, "pos": _m(q["pos"])} for q in p.ports])
 
     # --- bottom-wall row
     pr = P["propagation_rack"]

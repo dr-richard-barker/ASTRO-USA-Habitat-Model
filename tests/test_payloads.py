@@ -31,3 +31,42 @@ def test_powered_payload_heat_goes_to_bay():
 def test_oversized_payload_is_refused():
     with pytest.raises(ValueError, match="do not fit"):
         build(_ledger_with(**{"payloads.bioreactor_rack.envelope": [2600.0, 507.6, 810.0]}))
+
+
+def test_ports_lie_on_their_envelopes():
+    _, P = build()
+    for p in (q for q in P if q.cfd_role == "payload"):
+        assert p.ports, p.id
+        for port in p.ports:
+            assert all(lo - 1 <= v <= hi + 1 for lo, v, hi in zip(p.lo, port["pos"], p.hi)), (p.id, port["name"])
+
+
+def test_photobioreactor_inlet_faces_the_bioreactor_rack():
+    _, P = build()
+    rack = next(p for p in P if p.id == "payload_bioreactor_rack")
+    alg = next(p for p in P if p.id == "payload_photobioreactor")
+    inlet = next(q for q in alg.ports if q["name"] == "gas_in")
+    assert inlet["dir"][0] < 0 and rack.hi[0] < inlet["pos"][0]
+
+
+def test_powered_offgas_into_bay_adds_bioreactor_co2(tmp_path, monkeypatch):
+    L = _ledger_with(**{"scenario_m0.payloads_powered": True})
+    _, P = build(L)
+    bay = next(p for p in P if p.id == "myco_enclosure")
+    assert bay.co2_kg_s == pytest.approx(10 * 1.82e-3 / 86400)
+    import habitat.cfd.case as C                 # and it reaches the CFD sources (bay = heated/gassy blockage shell)
+    monkeypatch.setattr(C, "RUNS", tmp_path)
+    monkeypatch.setattr(C, "build_registry", lambda: (L, P))
+    meta = __import__("json").loads((C.build("coarse", 4) / "case_meta.json").read_text())
+    assert meta["sources_total"]["co2_mol_s"] == pytest.approx(sum(p.co2_kg_s for p in P) / C.M_CO2)
+    assert any(z["id"] == "myco_enclosure" and z["applied_as"] == "shell" for z in meta["parts"])
+
+
+def test_other_route_adds_no_bay_co2():
+    _, P = build(_ledger_with(**{"scenario_m0.payloads_powered": True, "payloads.layout.offgas_route": "photobioreactor"}))
+    assert next(p for p in P if p.id == "myco_enclosure").co2_kg_s == 0.0
+
+
+def test_port_value_mismatch_is_refused():
+    with pytest.raises(ValueError, match="co2"):
+        build(_ledger_with(**{"payloads.bioreactor_rack.co2_per_tube": 2.0}))

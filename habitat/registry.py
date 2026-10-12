@@ -16,7 +16,7 @@ import json
 from dataclasses import asdict, dataclass, field
 
 from .provenance import Ledger
-from .units import to_kg_s, to_m3_s, to_mm, to_W
+from .units import ENVELOPE_MATCH_TOL_MM, EXACT_TOL, HALF_TURN_DEG, to_kg_s, to_m3_s, to_mm, to_W
 
 
 @dataclass
@@ -32,6 +32,7 @@ class Part:
     h2o_kg_s: float = 0.0
     latent_W: float = 0.0
     opening: dict = field(default_factory=dict)   # for cfd_role == opening: role, face, flow
+    ports: list = field(default_factory=list)     # payload ports in the model frame (mm): name, kind, pos, dir, ...
     refs: list[str] = field(default_factory=list)  # ledger paths this part depends on
 
     @property
@@ -103,18 +104,46 @@ def build(L: Ledger | None = None) -> tuple[Ledger, list[Part]]:
             "photobioreactor": L.num("payloads.photobioreactor.led_power", "W"),
             "incubator": L.num("payloads.incubator.heat", "W"), \"sensor_module\": L.num("payloads.sensor_module.heat", "W")}
     powered = bool(L.val("scenario_m0.payloads_powered"))
+    rot = L.val("payloads.layout.rotation_deg")
+    co2_tube = L.num("payloads.bioreactor_rack.co2_per_tube", "g/day")
     x = bay.lo[0] + clear + gap
     yc = (bay.lo[1] + bay.hi[1]) / 2
     for k, (sx, sy, sz) in zip(order, sizes):
         if sy > (bay.hi[1] - bay.lo[1]) - 2 * clear or sz > bay.hi[2] - bay.lo[2]:
             raise ValueError(f"payload {k} ({sx} x {sy} x {sz} mm) does not fit the bay cross-section")
+        lo_p = [x, yc - sy / 2, bay.lo[2]]
+        env_chk = L.val(f"payloads.ports.{k}.envelope_check")
+        if any(abs(a - b) > ENVELOPE_MATCH_TOL_MM for a, b in zip(env_chk, (sx, sy, sz))):
+            raise ValueError(f"payload {k}: ports were derived for envelope {env_chk}, ledger envelope is {[sx, sy, sz]}")
+        r = rot[k]
+        if r not in (0, HALF_TURN_DEG):
+            raise ValueError(f"payload {k}: only 0/180 deg rotations keep the footprint (got {r})")
+        ports = []
+        for path, rec in L.records.items():
+            if not path.startswith(f"payloads.ports.{k}.") or path.endswith("envelope_check"):
+                continue
+            q = L.val(path)
+            u, v, w = q["pos"]
+            du, dv, dw = q["dir"]
+            if r == HALF_TURN_DEG:           # turn about the envelope's vertical centre line
+                u, v, du, dv = sx - u, sy - v, -du, -dv
+            ports.append({**q, "pos": [lo_p[0] + u, lo_p[1] + v, lo_p[2] + w], "dir": [du, dv, dw], "ledger": path})
+            if q.get("co2_g_day") is not None and abs(q["co2_g_day"] - co2_tube) > EXACT_TOL:
+                raise ValueError(f"{path}: co2 {q['co2_g_day']} != ledger payloads.bioreactor_rack.co2_per_tube {co2_tube}")
+            if k == "bioreactor_rack" and abs(q["flow_L_min"] - L.num("payloads.bioreactor_rack.vent_flow", "L/min")) > EXACT_TOL:
+                raise ValueError(f"{path}: flow differs from payloads.bioreactor_rack.vent_flow")
         parts.append(Part(f"payload_{k}", L.val(f"payloads.{k}.label") if k == "bioreactor_rack" else f"{k} (envelope)",
-                          "payloads", [x, yc - sy / 2, bay.lo[2]], [x + sx, yc + sy / 2, bay.lo[2] + sz], "payload",
-                          refs=[f"payloads.{k}.envelope", "payloads.layout.order", "payloads.layout.frame_clearance"]))
+                          "payloads", lo_p, [x + sx, yc + sy / 2, bay.lo[2] + sz], "payload", ports=ports,
+                          refs=[f"payloads.{k}.envelope", "payloads.layout.order", "payloads.layout.frame_clearance",
+                                "payloads.layout.rotation_deg"]))
         x += sx + gap
-    if powered:     # payload heat leaves the closed enclosure into the room: deposit it in the bay's fluid shell
+    if powered:     # payload heat (and vented gas) leave the closed enclosure into the room via the bay's fluid shell
         bay.heat_W += sum(heat.values())
         bay.refs.append("scenario_m0.payloads_powered")
+        if L.val("payloads.layout.offgas_route") == "bay":
+            n_gas = sum(1 for p in parts if p.id == "payload_bioreactor_rack" for q in p.ports if q["kind"] == "gas_out")
+            bay.co2_kg_s += to_kg_s(co2_tube * n_gas, "g/day")
+            bay.refs += ["payloads.bioreactor_rack.co2_per_tube", "payloads.layout.offgas_route"]
 
     # --- bottom-wall row
     lo, hi = _fig2_box(L, "fpm.fig2_zones.battery_cabinet", 0.0, to_mm(L.num("fpm.battery_cabinet.height", "in"), "in"))

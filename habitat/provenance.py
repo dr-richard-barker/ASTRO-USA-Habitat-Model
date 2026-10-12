@@ -91,6 +91,16 @@ class Ledger:
 
     # file-backed derived blocks: {from_json: path, source:, how:, select: zones}
     def _expand(self, v):
+        if isinstance(v, dict) and "from_json" in v and v.get("mode") == "ports":
+            data = json.loads((ROOT / v["from_json"]).read_text())
+            out = {}
+            for pay, blk in data[v["select"]].items():
+                out[pay] = {"envelope_check": {"value": blk["envelope_mm"], "unit": data["units"], "kind": "derived",
+                                               "source": blk["source"], "how": "envelope as evaluated alongside the ports"}}
+                for q in blk["ports"]:
+                    out[pay][q["name"]] = {"value": q, "unit": data["units"], "kind": "derived",
+                                          "source": blk["source"], "how": blk["how"]}
+            return out
         if isinstance(v, dict) and "from_json" in v:
             data = json.loads((ROOT / v["from_json"]).read_text())
             out = {}
