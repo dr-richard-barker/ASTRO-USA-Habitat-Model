@@ -52,7 +52,8 @@ def _fig2_box(L: Ledger, path: str, z0_mm: float, z1_mm: float) -> tuple[list[fl
     return lo, hi
 
 
-def build(L: Ledger | None = None) -> tuple[Ledger, list[Part]]:
+def build(L: Ledger | None = None, scenario: str = "m0") -> tuple[Ledger, list[Part]]:
+    """scenario 'm0': smoke test (payloads unpowered, bay a solid block); 's6': payload siting (open bay)."""
     L = L or Ledger()
     parts: list[Part] = []
     Lx = to_mm(L.num("fpm.footprint.length", "in"), "in")
@@ -103,7 +104,8 @@ def build(L: Ledger | None = None) -> tuple[Ledger, list[Part]]:
     heat = {"bioreactor_rack": L.num("payloads.bioreactor_rack.heat", "W"),
             "photobioreactor": L.num("payloads.photobioreactor.led_power", "W"),
             "incubator": L.num("payloads.incubator.heat", "W"), \"sensor_module\": L.num("payloads.sensor_module.heat", "W")}
-    powered = bool(L.val("scenario_m0.payloads_powered"))
+    powered = bool(L.val(f"scenario_{scenario}.payloads_powered"))
+    open_bay = scenario == "s6" and bool(L.val("scenario_s6.enclosure_open"))
     rot = L.val("payloads.layout.rotation_deg")
     co2_tube = L.num("payloads.bioreactor_rack.co2_per_tube", "g/day")
     x = bay.lo[0] + clear + gap
@@ -137,7 +139,21 @@ def build(L: Ledger | None = None) -> tuple[Ledger, list[Part]]:
                           refs=[f"payloads.{k}.envelope", "payloads.layout.order", "payloads.layout.frame_clearance",
                                 "payloads.layout.rotation_deg"]))
         x += sx + gap
-    if powered:     # payload heat (and vented gas) leave the closed enclosure into the room via the bay's fluid shell
+    if open_bay:    # S6: the bay is open to the room; solid payloads block air, the open-frame bioreactor rack does not
+        bay.cfd_role = "ignore"
+        bay.refs.append("scenario_s6.enclosure_open")
+        for p in parts:
+            if p.cfd_role == "payload" and p.id in ("payload_photobioreactor", "payload_incubator"):
+                p.cfd_role = "blockage"
+            if p.id == "payload_bioreactor_rack":
+                p.refs.append("scenario_s6.bioreactor_rack_open")
+        if powered:  # each payload's own heat goes to the air around it; the CO2 is handled as route tracers in the case
+            for p in parts:
+                key = p.id.replace("payload_", "")
+                if key in heat and heat[key]:
+                    p.heat_W += heat[key]
+                    p.refs.append(f"scenario_{scenario}.payloads_powered")
+    elif powered:   # payload heat (and vented gas) leave the closed enclosure into the room via the bay's fluid shell
         bay.heat_W += sum(heat.values())
         bay.refs.append("scenario_m0.payloads_powered")
         if L.val("payloads.layout.offgas_route") == "bay":

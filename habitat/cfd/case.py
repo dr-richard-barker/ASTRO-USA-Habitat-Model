@@ -29,6 +29,7 @@ import CoolProp.CoolProp as CP
 
 from .. import RUNS
 from ..registry import Part, build as build_registry
+from ..units import to_kg_s
 from . import foam
 from .foam import Raw, write, write_field
 
@@ -118,9 +119,45 @@ def write_geometry(parts: list[Part], tri: Path) -> dict:
 
 
 # ----------------------------------------------------------------------------- case
-def build(mesh: str = "coarse", nprocs: int = 4, tag: str = "") -> Path:
-    L, parts = build_registry()
-    case = RUNS / f"fpm_m0_{mesh}{tag}"
+def s6_tracers(L, parts, h_mm: float) -> tuple[list, dict, dict]:
+    """S6 route tracers. Returns (extra zones [(name, lo_m, hi_m)], {route: [(zone, mol_s)]}, info)."""
+    P = {p.id: p for p in parts}
+    rack, alg = P["payload_bioreactor_rack"], P["payload_photobioreactor"]
+    n_tube = to_kg_s(L.num("payloads.bioreactor_rack.co2_per_tube", "g/day"), "g/day") / M_CO2
+    half = 0.75 * h_mm
+    zones, port_zone = [], {}
+    gas = [q for q in rack.ports if q["kind"] == "gas_out"]
+    for q in gas:                                          # small box just outside each vessel vent tip
+        c = np.array(q["pos"]) + np.array(q["dir"]) * 0.5 * h_mm
+        port_zone[q["name"]] = f"port_{q['name']}"
+        zones.append((port_zone[q["name"]], (c - half) / 1000, (c + half) / 1000))
+    vent = next(q for q in alg.ports if q["name"] == "vent")
+    inlet = next(q for q in alg.ports if q["name"] == "gas_in")
+    vc = np.array([vent["pos"][0], vent["pos"][1], alg.hi[2] + 1.5 * h_mm + half])  # clear of the photobioreactor's heat shell
+    zones.append(("photobioreactor_vent", (vc - half) / 1000, (vc + half) / 1000))
+    n_pipe = int(L.num("payloads.photobioreactor.sparge_flow_max", "L/min") // L.num("payloads.bioreactor_rack.vent_flow", "L/min"))
+    by_dist = sorted(gas, key=lambda q: np.linalg.norm(np.array(q["pos"]) - np.array(inlet["pos"])))
+    piped, vented = by_dist[:n_pipe], by_dist[n_pipe:]
+    routes = {}
+    for r in L.val("scenario_s6.routes"):
+        if r == "bay":
+            routes[r] = [(port_zone[q["name"]], n_tube) for q in gas]
+        elif r == "photobioreactor":
+            routes[r] = [("photobioreactor_vent", n_tube * len(piped))] + [(port_zone[q["name"]], n_tube) for q in vented]
+        elif r == "nft_wall":
+            routes[r] = [("nft_canopy", n_tube * len(gas))]
+        else:
+            raise ValueError(f"unknown route {r}")
+        tot = sum(m for _, m in routes[r])
+        assert abs(tot - n_tube * len(gas)) < 1e-15, f"route {r} releases {tot}, expected {n_tube * len(gas)}"
+    info = {"co2_per_tube_mol_s": n_tube, "tubes": len(gas), "piped_to_photobioreactor": [q["name"] for q in piped],
+            "vented_when_piped": [q["name"] for q in vented], "sparge_capacity_units": n_pipe}
+    return zones, routes, info
+
+
+def build(mesh: str = "coarse", nprocs: int = 4, tag: str = "", scenario: str = "m0") -> Path:
+    L, parts = build_registry(scenario=scenario)
+    case = RUNS / f"fpm_{scenario}_{mesh}{tag}"
     tri = case / "constant" / "triSurface"
     geo = write_geometry(parts, tri)
     dom = next(p for p in parts if p.cfd_role == "domain")
@@ -224,6 +261,10 @@ mergeTolerance 1e-6;
         a, b = (np.array(z.lo) - grow) / 1000, (np.array(z.hi) + grow) / 1000
         acts.append(f"    {{ name {z.id}; type cellZoneSet; action new; source boxToCell; "
                     f"box ({a[0]:.9g} {a[1]:.9g} {a[2]:.9g}) ({b[0]:.9g} {b[1]:.9g} {b[2]:.9g}); }}")
+    tracer_zones, tracers, tracer_info = (s6_tracers(L, parts, MESH_H_MM[mesh]) if scenario == "s6" else ([], {}, {}))
+    for nm, a, b in tracer_zones:
+        acts.append(f"    {{ name {nm}; type cellZoneSet; action new; source boxToCell; "
+                    f"box ({a[0]:.9g} {a[1]:.9g} {a[2]:.9g}) ({b[0]:.9g} {b[1]:.9g} {b[2]:.9g}); }}")
     write(case / "system" / "topoSetDict", "dictionary", "topoSetDict", "actions\n(\n" + "\n".join(acts) + "\n);\n")
 
     # --- thermophysics / turbulence / gravity
@@ -270,7 +311,8 @@ mergeTolerance 1e-6;
     a_sup = (sup.hi[1] - sup.lo[1]) * (sup.hi[2] - sup.lo[2]) / 1e6          # grille area, m2
     kin = 1.5 * (0.05 * Q / a_sup) ** 2     # 5 % intensity at the supply face velocity (initial value only)
     U, prgh, p, T, k, om, nut, at = {}, {}, {}, {}, {}, {}, {}, {}
-    S = {s: {} for s in ("dCO2", "dH2O", "AoA")}
+    TR = [f"tr_{r}" for r in tracers]
+    S = {s: {} for s in ("dCO2", "dH2O", "AoA", *TR)}
     for pf in pat:
         p[pf] = {"type": "calculated", "value": f"uniform {p0}"}
         nut[pf] = {"type": "nutkWallFunction", "value": "uniform 0"}
@@ -330,18 +372,51 @@ mergeTolerance 1e-6;
                               "fvOptions": {"age": {"type": "scalarSemiImplicitSource", "selectionMode": "all",
                                                     "volumeMode": "specific",
                                                     "sources": {"AoA": {"explicit": rho0, "implicit": 0}}}}}
+    for r, srcs in tracers.items():
+        fo = {"type": "scalarTransport", "libs": '("libsolverFunctionObjects.so")', "field": f"tr_{r}",
+              "alphaD": 1 / SC_LAMINAR, "alphaDt": 1 / SC_TURB, "nCorr": 1, "writeControl": "writeTime",
+              "fvOptions": {f"src_{r}_{k}": {"type": "scalarSemiImplicitSource", "selectionMode": "cellZone",
+                                             "cellZone": zn, "volumeMode": "absolute",
+                                             "sources": {f"tr_{r}": {"explicit": mol * M_AIR * 1e6, "implicit": 0}}}
+                            for k, (zn, mol) in enumerate(srcs)}}
+        funcs[f"transport_tr_{r}"] = fo
     every = 20
+    scal_all = "(T dCO2 dH2O AoA " + " ".join(TR) + ")"
+    probes = {}
+    if scenario == "s6":
+        P = {p.id: p for p in parts}
+        hm = MESH_H_MM[mesh]
+        for p in parts:
+            if p.layer == "crew":
+                probes[f"{p.id}_head"] = [(p.lo[0] + p.hi[0]) / 2, (p.lo[1] + p.hi[1]) / 2, p.hi[2] - hm]
+        for pid, port in (("payload_incubator", "intake_fan"), ("payload_sensor_module", "sample_membrane")):
+            q = next(q for q in P[pid].ports if q["name"] == port)
+            probes[f"{pid.replace('payload_', '')}_{port}"] = [q["pos"][0], q["pos"][1], P[pid].hi[2] + 0.75 * hm]
+        can = P["nft_canopy"]
+        for k, f in enumerate((0.15, 0.5, 0.85)):
+            probes[f"nft_canopy_{k}"] = [can.lo[0] + f * (can.hi[0] - can.lo[0]), (can.lo[1] + can.hi[1]) / 2,
+                                          (can.lo[2] + can.hi[2]) / 2]
+        bay = P["myco_enclosure"]
+        probes["bay_centre"] = [(bay.lo[0] + bay.hi[0]) / 2, (bay.lo[1] + bay.hi[1]) / 2, bay.hi[2] * 0.75]
+        funcs["probes"] = {"type": "probes", "libs": '("libsampling.so")', "writeControl": "timeStep",
+                           "writeInterval": every, "fields": scal_all,
+                           "probeLocations": Raw("(" + " ".join(f"({x / 1000:.6g} {y / 1000:.6g} {z / 1000:.6g})"
+                                                                for x, y, z in probes.values()) + ")")}
+        for zn in ("nft_canopy", "crew_1", "crew_2", "workbench_zone"):
+            funcs[f"zone_{zn}"] = {"type": "volFieldValue", "libs": '("libfieldFunctionObjects.so")',
+                                   "writeControl": "timeStep", "writeInterval": every, "writeFields": "false",
+                                   "regionType": "cellZone", "name": zn, "operation": "volAverage", "fields": scal_all}
     for o in ("hvac_supply", "hvac_return"):
         funcs[f"flux_{o}"] = {"type": "surfaceFieldValue", "libs": '("libfieldFunctionObjects.so")',
                               "writeControl": "timeStep", "writeInterval": every, "writeFields": "false",
                               "regionType": "patch", "name": f"domain_{o}", "operation": "weightedAverage",
-                              "weightField": "phi", "fields": "(T dCO2 dH2O AoA)"}
+                              "weightField": "phi", "fields": scal_all}
         funcs[f"mflow_{o}"] = {"type": "surfaceFieldValue", "libs": '("libfieldFunctionObjects.so")',
                                "writeControl": "timeStep", "writeInterval": every, "writeFields": "false",
                                "regionType": "patch", "name": f"domain_{o}", "operation": "sum", "fields": "(phi)"}
     funcs["volAvg"] = {"type": "volFieldValue", "libs": '("libfieldFunctionObjects.so")', "writeControl": "timeStep",
                        "writeInterval": every, "writeFields": "false", "regionType": "all", "operation": "volAverage",
-                       "fields": "(T dCO2 dH2O AoA)"}
+                       "fields": scal_all}
     funcs["residuals"] = {"type": "solverInfo", "libs": '("libutilityFunctionObjects.so")', "fields": "(U h p_rgh k omega)"}
     write(case / "system" / "controlDict", "dictionary", "controlDict", {
         "application": "buoyantSimpleFoam", "startFrom": "latestTime", "startTime": 0, "stopAt": "endTime",
@@ -356,6 +431,7 @@ mergeTolerance 1e-6;
                        "div(phi,k)": "bounded Gauss upwind", "div(phi,omega)": "bounded Gauss upwind",
                        "div(phi,dCO2)": "bounded Gauss limitedLinear 1", "div(phi,dH2O)": "bounded Gauss limitedLinear 1",
                        "div(phi,AoA)": "bounded Gauss limitedLinear 1",
+                       **{f"div(phi,{t})": "bounded Gauss limitedLinear 1" for t in TR},
                        "div(((rho*nuEff)*dev2(T(grad(U)))))": "Gauss linear"},
         "laplacianSchemes": {"default": "Gauss linear limited corrected 0.33"},
         "interpolationSchemes": {"default": "linear"},
@@ -367,17 +443,19 @@ mergeTolerance 1e-6;
             "\"(U|h|k|omega)\"": {"solver": "smoothSolver", "smoother": "symGaussSeidel", "tolerance": 1e-8,
                                   "relTol": 0.1},
             # steady scalars: Gauss-Seidel smoother (PBiCGStab broke down with a SIGFPE on dH2O in run2)
-            "\"(dCO2|dH2O|AoA)\"": {"solver": "smoothSolver", "smoother": "GaussSeidel", "nSweeps": 2,
+            "\"(dCO2|dH2O|AoA|tr_.*)\"": {"solver": "smoothSolver", "smoother": "GaussSeidel", "nSweeps": 2,
                                     "tolerance": 1e-9, "relTol": 0.05, "maxIter": 100}},
         "SIMPLE": {"momentumPredictor": "no", "nNonOrthogonalCorrectors": 0,
                    "pRefPoint": Raw(f"({loc[0]:.6g} {loc[1]:.6g} {loc[2]:.6g})"), "pRefValue": p0},
         "relaxationFactors": {"fields": {"rho": 1.0, "p_rgh": 0.7},
                               "equations": {"U": 0.3, "h": 0.5, "\"(k|omega)\"": 0.5,
-                                            "\"(dCO2|dH2O|AoA)\"": 0.9}}})
+                                            "\"(dCO2|dH2O|AoA|tr_.*)\"": 0.9}}})
     write(case / "system" / "decomposeParDict", "dictionary", "decomposeParDict",
           {"numberOfSubdomains": nprocs, "method": "scotch"})
 
-    meta = {"case": case.name, "mesh": mesh, "cell_mm": MESH_H_MM[mesh], "background_cells": int(np.prod(n)),
+    meta = {"case": case.name, "scenario": scenario, "mesh": mesh,
+            "tracers": {r: [{"zone": z, "mol_s": m} for z, m in v] for r, v in tracers.items()},
+            "tracer_info": tracer_info, "probes": probes, "cell_mm": MESH_H_MM[mesh], "background_cells": int(np.prod(n)),
             "domain_bounds_m": [lo.tolist(), hi.tolist()],
             "ledger_digest": L.digest(), "geometry": geo,
             "physics": {"T0_K": T0, "supply_T_K": Ts, "Q_m3_s": Q, "mdot_kg_s": mdot, "rho0": rho0, "rho_supply": rho_s,
@@ -423,8 +501,9 @@ def main(argv=None):
     ap.add_argument("--np", type=int, default=4)
     ap.add_argument("--run", action="store_true")
     ap.add_argument("--mesh-only", action="store_true")
+    ap.add_argument("--scenario", choices=["m0", "s6"], default="m0")
     a = ap.parse_args(argv)
-    case = build(a.mesh, a.np)
+    case = build(a.mesh, a.np, scenario=a.scenario)
     print(case)
     if a.run or a.mesh_only:
         mesh_case(case)

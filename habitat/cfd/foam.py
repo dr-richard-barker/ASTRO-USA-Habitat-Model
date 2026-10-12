@@ -99,6 +99,10 @@ def host_lock(wait_foreign_s: float = 6 * 3600, quiet_s: float = 20.0, poll_s: f
     with open(LOCK, "w") as fh:
         fcntl.flock(fh, fcntl.LOCK_EX)
         t0, last_seen = time.time(), None
+        if os.environ.get("HABITAT_FOAM_COEXIST") == "1":   # user-approved: share the VM, only serialise our own runs
+            print("[foam] coexist mode: not waiting for other sessions' containers", flush=True)
+            yield
+            return
         while True:
             busy = foreign_containers()
             now = time.time()

@@ -40,8 +40,8 @@ def test_dropped_source_is_detected(monkeypatch, tmp_path):
     import habitat.cfd.case as mod
     real = mod.build_registry
 
-    def lossy():
-        L, parts = real()
+    def lossy(**k):
+        L, parts = real(**k)
         for p in parts:
             if p.id == "battery_cabinet":
                 p.cfd_role = "ignore"          # heat silently disappears from the CFD unless caught

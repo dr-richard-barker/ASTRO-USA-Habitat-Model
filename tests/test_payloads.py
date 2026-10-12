@@ -56,7 +56,7 @@ def test_powered_offgas_into_bay_adds_bioreactor_co2(tmp_path, monkeypatch):
     assert bay.co2_kg_s == pytest.approx(10 * 1.82e-3 / 86400)
     import habitat.cfd.case as C                 # and it reaches the CFD sources (bay = heated/gassy blockage shell)
     monkeypatch.setattr(C, "RUNS", tmp_path)
-    monkeypatch.setattr(C, "build_registry", lambda: (L, P))
+    monkeypatch.setattr(C, "build_registry", lambda **k: (L, P))
     meta = __import__("json").loads((C.build("coarse", 4) / "case_meta.json").read_text())
     assert meta["sources_total"]["co2_mol_s"] == pytest.approx(sum(p.co2_kg_s for p in P) / C.M_CO2)
     assert any(z["id"] == "myco_enclosure" and z["applied_as"] == "shell" for z in meta["parts"])
