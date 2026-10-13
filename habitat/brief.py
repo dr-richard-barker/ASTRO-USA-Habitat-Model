@@ -71,6 +71,14 @@ def main() -> None:
                    f"{offgas} ppm when mixed through the room, whichever of three routes it takes{crew}. Even piped "
                    f"to the hydroponic wall it raises the canopy zone by only {can:.1f} ppm, so with current "
                    "assumptions it is not a useful CO₂ supply for the plants.\n")
+    nav = _j("results/nav.json")
+    if nav and nav.get("pass"):
+        a, b2 = (n.replace("_", " ").replace("nft", "NFT") for n in nav["min_clear_aisle_between"])
+        out.append(f"- **Space to move.** The narrowest clear aisle is {nav['min_clear_aisle_m']:.2f} m "
+                   f"({nav['min_clear_aisle_at_x_m']:.1f} m from the door, between the {a} and the {b2}); keeping "
+                   f"{nav['agent_radius_m']:.2f} m clear of "
+                   f"equipment leaves {nav['walkable_area_m2']:.1f} m² of the {nav['floor_area_m2']:.1f} m² floor to walk "
+                   "on. A layout figure, not a code check; worth a look for six crew at once.\n")
     if lb:
         a = next(v for k, v in lb["areas"].items() if k.startswith("NFT wall"))
         i = lb["inputs"]

@@ -1,0 +1,48 @@
+{
+ "ledger_digest": "bf8f08efaf8171a1",
+ "agent_radius_m": 0.25,
+ "head_clearance_m": 1.9,
+ "walkable_area_m2": 6.491,
+ "floor_area_m2": 25.169,
+ "pieces": 1,
+ "min_clear_aisle_m": 0.888,
+ "min_clear_aisle_at_x_m": 0.5,
+ "min_clear_aisle_between": [
+  "battery_cabinet",
+  "nft_wall"
+ ],
+ "aisle_note": "clear width between equipment on the two long sides, no agent margin; a report, not a code check",
+ "obstacles": [
+  "nft_wall",
+  "myco_enclosure",
+  "payload_bioreactor_rack",
+  "payload_photobioreactor",
+  "payload_incubator",
+  "payload_sensor_module",
+  "propagation_rack",
+  "kratky",
+  "dutch_bucket_1",
+  "dutch_bucket_2",
+  "battery_cabinet",
+  "workbench",
+  "sensor_computer",
+  "recp4",
+  "recp8",
+  "recp3",
+  "recp7",
+  "recp2",
+  "recp6",
+  "recp1",
+  "recp5",
+  "disconnect"
+ ],
+ "colliders": 28,
+ "gates": {
+  "navmesh_connected": true,
+  "reaches_door_end": true,
+  "reaches_partition": true,
+  "no_vertex_inside_obstacle": true,
+  "colliders_valid": true
+ },
+ "pass": true
+}

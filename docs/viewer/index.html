@@ -70,6 +70,7 @@ const marker = new THREE.Mesh(new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Mat
                               new THREE.MeshBasicMaterial({ color: 0x3fb6a8 }));
 marker.visible = false; scene.add(marker);
 const xrRay = new THREE.Raycaster(), tmpM = new THREE.Matrix4();
+xrRay.layers.enable(1);   // layer 1 = walkable navmesh: hit by the teleport ray, never drawn or click-picked
 const controllers = [0, 1].map(i => {
   const c = renderer.xr.getController(i);
   c.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0, -6)]),
@@ -165,6 +166,13 @@ new GLTFLoader().load(SCENE === "primary" ? "assets/primary_concept_lod2.glb" : 
   window.__habitat = { ports, lod: LOD, elements: [...new Set(Object.values(groups).flat().map(m => m.userData.meta.element))].sort(),
                        size: s.toArray(), overlays: [], digest: root.children[0]?.userData?.ledger_digest,
                        illustrative: [...new Set(Object.values(groups).flat().filter(m => m.userData.meta.illustrative).map(m => m.userData.meta.element))].sort() };
+  // teleport onto the walkable navmesh (floor minus equipment, habitat/vr/nav.py) when it is there; else the floor
+  new GLTFLoader().load("assets/fpm_navmesh.glb", g => {
+    const nav = []; g.scene.traverse(o => { if (o.isMesh) { o.layers.set(1); nav.push(o); } });
+    scene.add(g.scene); floorMeshes = nav; window.__habitat.navmesh = nav.length;
+    const b = new THREE.Box3().setFromObject(g.scene);
+    window.__habitat.navBox = [...b.min.toArray(), ...b.max.toArray()].map(v => +v.toFixed(3));
+  }, undefined, e => console.warn("navmesh not loaded; teleport falls back to the floor", e));
   fetch("assets/overlays.json").then(r => r.ok ? r.json() : []).catch(() => []).then(list => {
     for (const ov of list) new GLTFLoader().load("assets/" + ov.file, g => {
       g.scene.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ vertexColors:true, side:THREE.DoubleSide });

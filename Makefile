@@ -20,6 +20,7 @@ test:
 	uv run pytest -q
 vr:
 	uv run python -m habitat.vr.build
+	uv run python -m habitat.vr.nav
 drawings:
 	uv run python -m habitat.drawings
 report: drawings

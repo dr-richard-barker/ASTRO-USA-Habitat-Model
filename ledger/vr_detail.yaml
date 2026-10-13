@@ -89,3 +89,15 @@ vr:
     kind: assumed
     why: "Visual only."
     ask_team: false
+  nav_agent_radius:
+    value: 0.25
+    unit: m
+    kind: assumed
+    why: "Walkable-area (navmesh) margin around equipment: half a typical shoulder width, so a VR avatar or an engine character stays clear of what it would brush against."
+    ask_team: false
+  nav_head_clearance:
+    value: 1.9
+    unit: m
+    kind: assumed
+    why: "An element blocks walking if its underside is lower than this (crew height 1.75 m in the crew ledger plus margin); higher items such as conduits are overhead."
+    ask_team: false
