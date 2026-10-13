@@ -3,5 +3,10 @@
   "file": "fpm_m0_coarse_tr_age_z1.10.glb",
   "label": "age of air at z = 1.1 m",
   "note": "Age of air 355-483 s (2nd-98th pct, magma: dark = fresh) \u2014 fpm_m0_coarse_tr, time mean 446-1337 s; coarse mesh, placeholder HVAC."
+ },
+ {
+  "file": "sensor_positions.glb",
+  "label": "suggested sensor positions (top 5)",
+  "note": "Wall sensor positions most representative of the occupied zone, worst case over fpm_m0_coarse_tr (largest sphere = best): 1. wall y=0 x = 5.25 m, z 1.2 m; 2. wall y=0 x = 8.00 m, z 1.2 m; 3. wall y=0 x = 4.50 m, z 1.2 m; 4. attic partition y = 0.75 m, z 1.2 m; 5. attic partition y = 0.75 m, z 1.5 m. Screening result; positions near plants, water culture, Mycoponics and payloads excluded."
  }
 ]

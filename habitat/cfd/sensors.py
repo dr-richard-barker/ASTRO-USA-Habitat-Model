@@ -30,6 +30,21 @@ QTY = (("T", "T (K)", "abs"), ("dCO2", "CO₂ (%)", "rel"), ("dH2O", "H₂O (%)"
 OUT = ROOT / "results" / "cfd"
 
 
+def clearance(pts: np.ndarray, L: Ledger) -> tuple[np.ndarray, list[str]]:
+    """Distance (m) from each candidate to the nearest part in the exclusion layers, and that part's id."""
+    from ..registry import build
+    _, parts = build(L)
+    near = [p for p in parts if p.layer in L.val("sensors.exclusion_layers") and p.cfd_role != "ignore"]
+    d = np.full(len(pts), np.inf); who = [""] * len(pts)
+    for p in near:
+        lo, hi = np.array(p.lo) / 1000, np.array(p.hi) / 1000
+        dist = np.linalg.norm(np.maximum(0, np.maximum(lo - pts, pts - hi)), axis=1)
+        for i in np.where(dist < d)[0]:
+            who[i] = p.id
+        d = np.minimum(d, dist)
+    return d, who
+
+
 def excluded(pts: np.ndarray, L: Ledger, scenario: str = "m0") -> tuple[np.ndarray, list[str]]:
     """Mask of candidates near parts whose real gas exchange the CFD does not model (ledger sensors.exclusion_*)."""
     from ..registry import build
@@ -100,9 +115,11 @@ def score(cases: list[Path]) -> dict:
     norm = np.stack([worst[f] / np.nanmin(np.where(valid_all, worst[f], np.nan)) for f, *_ in QTY])
     combined = np.where(valid_all, norm.max(axis=0), np.nan)
     order = [int(i) for i in np.argsort(np.where(np.isnan(combined), np.inf, combined)) if valid_all[i]]
+    clr, who = clearance(pts, L)
     rows = [{"x_m": round(float(pts[i, 0]), 2), "y_m": round(float(pts[i, 1]), 2), "z_m": float(pts[i, 2]),
              "wall": walls[i], **{f"worst_{f}": round(float(worst[f][i]), 3) for f, *_ in QTY},
-             "combined": round(float(combined[i]), 3)} for i in order]
+             "combined": round(float(combined[i]), 3), "clearance_m": round(float(clr[i]), 2),
+             "nearest_living_part": who[i]} for i in order]
     return {"cases": list(per_case), "ledger_digest": L.digest(), "n_candidates": int(len(pts)),
             "n_valid": int(valid_all.sum()), "n_excluded_near_living_systems": int(near.sum()), "excluded_parts": near_ids, "references": {k: v["ref"] for k, v in per_case.items()},
             "ranked": rows, "pts": pts, "walls": walls, "worst": worst, "valid": valid_all}
@@ -120,12 +137,13 @@ def write(res: dict) -> Path:
              "(T in K; CO₂ and H₂O in % of the occupied-zone excess over supply air); each position's WORST case "
              "across the runs is shown. Coarse mesh, placeholder HVAC: a screening ranking, to be confirmed by "
              "measurement.\n\n",
-             "| rank | wall | along the wall (m) | height (m) | worst T err (K) | worst CO₂ err (%) | worst H₂O err (%) |\n",
-             "|---|---|---|---|---|---|---|\n"]
+             "| rank | wall | along the wall (m) | height (m) | worst T err (K) | worst CO₂ err (%) | worst H₂O err (%) | "
+             "clearance to nearest plant / water / payload part |\n",
+             "|---|---|---|---|---|---|---|---|\n"]
     for k, r in enumerate(top, 1):
         along = f"y = {r['y_m']:.2f}" if "attic" in r["wall"] else f"x = {r['x_m']:.2f}"
         lines.append(f"| {k} | {r['wall']} | {along} | {r['z_m']:.1f} | {r['worst_T']:.2f} | "
-                     f"{r['worst_dCO2']:.1f} | {r['worst_dH2O']:.1f} |\n")
+                     f"{r['worst_dCO2']:.1f} | {r['worst_dH2O']:.1f} | {r['clearance_m']:.2f} m ({r['nearest_living_part']}) |\n")
     (OUT / "sensor_placement.md").write_text("".join(lines))
     js = {k: v for k, v in res.items() if k not in ("pts", "walls", "worst", "valid")}
     (OUT / "sensor_placement.json").write_text(json.dumps(js, indent=1) + "\n")
@@ -157,7 +175,34 @@ def write(res: dict) -> Path:
     p = OUT / "sensor_placement.png"
     fig.savefig(p, dpi=110)
     plt.close(fig)
+    viewer_overlay(res)
     return p
+
+
+def viewer_overlay(res: dict, n: int = 5) -> Path:
+    """Top-n positions as coloured spheres for the viewer (same model->glTF mapping as the CFD slices)."""
+    import trimesh
+    from .slices import to_gltf_frame
+    cols = matplotlib.colormaps["viridis"](np.linspace(0.9, 0.2, n))
+    parts = []
+    for k, r in enumerate(res["ranked"][:n]):
+        m = trimesh.creation.icosphere(subdivisions=2, radius=0.06 - 0.006 * k)
+        m.apply_translation(to_gltf_frame(np.array([[r["x_m"], r["y_m"], r["z_m"]]]))[0])
+        m.visual.vertex_colors = (np.tile(cols[k], (len(m.vertices), 1)) * 255).astype(np.uint8)
+        parts.append(m)
+    glb = ROOT / "vr" / "web" / "assets" / "sensor_positions.glb"
+    trimesh.util.concatenate(parts).export(glb)
+    man = ROOT / "vr" / "web" / "assets" / "overlays.json"
+    items = [o for o in (json.loads(man.read_text()) if man.exists() else []) if o["file"] != glb.name]
+    where = "; ".join(f"{k}. {r['wall'].split(' (')[0]} {'y' if 'attic' in r['wall'] else 'x'} = "
+                      f"{r['y_m'] if 'attic' in r['wall'] else r['x_m']:.2f} m, z {r['z_m']:.1f} m"
+                      for k, r in enumerate(res["ranked"][:n], 1))
+    items.append({"file": glb.name, "label": f"suggested sensor positions (top {n})",
+                  "note": f"Wall sensor positions most representative of the occupied zone, worst case over "
+                          f"{', '.join(res['cases'])} (largest sphere = best): {where}. Screening result; "
+                          "positions near plants, water culture, Mycoponics and payloads excluded."})
+    man.write_text(json.dumps(items, indent=1) + "\n")
+    return glb
 
 
 if __name__ == "__main__":
