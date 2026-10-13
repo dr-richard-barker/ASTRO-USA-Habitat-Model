@@ -92,6 +92,14 @@ def main() -> int:
         (OUT / "campaign.json").write_text(json.dumps(log, indent=1, default=str) + "\n")
     lines = [f"{k}: {'PASS' if v.get('pass') else 'FAIL' if 'pass' in v else v.get('error', '?')} ({v['wall_h']} h)"
              for k, v in log["results"].items()]
+    # sensor placement over every time-averaged run that passed its gates (baseline + campaign)
+    try:
+        from . import sensors
+        passed = [RUNS / "fpm_m0_coarse_tr"] + [RUNS / v["case"] for v in log["results"].values() if v.get("pass")]
+        sensors.write(sensors.score(passed))
+        lines.append(f"sensor placement: {len(passed)} cases")
+    except BaseException as e:  # noqa: BLE001
+        lines.append(f"sensor placement failed: {type(e).__name__}: {e}")
     st.write_text("DONE\n" + "\n".join(lines) + "\n")
     return 0
 

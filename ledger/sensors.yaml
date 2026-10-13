@@ -1,0 +1,39 @@
+# Sensor-placement analysis settings (habitat/cfd/sensors.py). These define the question, not the room: every value is
+# a declared assumption for the team to change.
+sensors:
+  occupied_zone_z:
+    value: [0.1, 1.8]
+    unit: m
+    kind: assumed
+    why: "Height band the crew occupy and breathe in (standing crew, 1.75 m tall in the crew ledger); the reference each candidate sensor is scored against is the volume mean over this band."
+    ask_team: false
+  mount_heights:
+    value: [1.2, 1.5]
+    unit: m
+    kind: assumed
+    why: "Candidate wall-mount heights: seated and standing breathing height, both reachable for maintenance."
+    ask_team: true
+  wall_offset:
+    value: 0.05
+    unit: m
+    kind: assumed
+    why: "Sensor sampling point this far off the wall lining (housing depth)."
+    ask_team: false
+  spacing:
+    value: 0.25
+    unit: m
+    kind: assumed
+    why: "Spacing of candidate positions along each wall; positions that fall inside equipment are dropped."
+    ask_team: false
+  exclusion_margin:
+    value: 0.3
+    unit: m
+    kind: assumed
+    why: "Candidates within this distance of a plant, water-culture, Mycoponics or payload part are dropped: plant and fungal gas exchange is not modelled yet (the canopy carries LED heat only), so the CFD would wrongly rate a sensor in or beside a canopy as representative of the room, whereas in reality it would read the plants."
+    ask_team: false
+  exclusion_layers:
+    value: ["plants", "water", "payloads"]
+    unit: '-'
+    kind: assumed
+    why: "Registry layers whose parts exchange gas or humidity with the air in reality but not (or not fully) in the current CFD."
+    ask_team: false
