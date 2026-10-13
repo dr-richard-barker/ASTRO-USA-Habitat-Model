@@ -1,0 +1,216 @@
+\documentclass[11pt]{article}
+% DRAFT seed (2026-10-13). Numbers come from numbers.tex (habitat/manuscript_numbers.py); never type a result here.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=25mm]{geometry}
+\usepackage{authblk}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\input{numbers}
+
+\title{A sourced parametric model of an analog-habitat food production module: CAD, airflow CFD and a shared VR
+review built from one ledger \todo{title to be agreed}}
+
+\author[1]{Richard Barker\thanks{ORCID 0000-0001-5681-9857. \todo{corresponding-author email and any further affiliation to confirm}}}
+\author[2]{John M. Peters\thanks{\todo{confirm full name as it should be printed (the ICES-2026-251 byline gives ``John M. Peters'') and ORCID}}}
+\author[1]{D. Marshall Porterfield\thanks{\todo{confirm name form and ORCID}}}
+\affil[1]{Agricultural \& Biological Engineering, Purdue University, West Lafayette, IN 47907, USA}
+\affil[2]{Space \& Earth Analogs Research Chapter, Purdue University, West Lafayette, IN 47907, USA}
+\date{Draft, ledger \LedgerDigest, code \GitHead}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Analog habitats are one place where food-production and biomanufacturing systems for crewed missions can be
+operated together, yet the design data for such facilities are usually scattered across papers, drawings and renders. We
+built a parametric model of the ASTRO-USA Food Production Module (FPM), a converted shipping container described
+in \citet{peters2026astro}, in which one ledger of \NRecords{} values (\NSpecified{} quoted from sources,
+\NDerived{} derived from them, \NAssumed{} declared assumptions) generates engineering CAD, airflow simulations and a shared VR scene. The
+OpenFOAM simulations solve buoyant, time-averaged turbulent flow with heat, CO\textsubscript{2}, water vapour and age
+of air, and every run must close its balances within 1\,\% before it is used. A ventilated-room benchmark (IEA
+Annex 20) favoured the standard $k$--$\varepsilon$ model over SST $k$--$\omega$ (RMS velocity errors \KeLo--\KeHi{}
+against \SstLo--\SstHi{} of the inlet velocity). With a placeholder HVAC unit, room-wide quantities are robust to mesh
+and turbulence model (within \GciDomainMax{} and \ModelDomainMax\,\%), single-point values are not (up to
+\GciLocalMax{} and \ModelLocalMax\,\%). Halving the airflow lowers the air-change efficiency from \BaseACE{} to
+\SfiveaACE; CO\textsubscript{2} off-gas from placeholder bioreactor payloads is about \OffgasMixed~ppm against
+\BaseReturnCOTwo~ppm from two crew; an airtight module with the HVAC off reaches the OSHA CO\textsubscript{2} limit
+in \SthreeSixCrew~h with six crew; and the stated \LoadMax~W power budget, at the best LED efficacy achieved to date, cannot light the
+hydroponic wall into the range of NASA's lettuce crop model. The model also yields a sensor position that stays representative across all
+operating conditions run, and a list of the facts that would turn its assumptions into a design tool.
+\end{abstract}
+
+\section{Introduction}
+Long-duration crewed missions are expected to rely in part on growing food \citep{wheeler2017agriculture}, and ground
+analogs are where such systems can be operated with people in the loop before flight. Examples range from the EDEN ISS greenhouse operated in Antarctica
+\citep{zabel2020edeniss} to crewed bioregenerative life-support experiments \citep{fu2016lunarpalace}; the history of crop research for space
+agriculture is reviewed by \citet{wheeler2017agriculture}. In these facilities the air is shared:
+crew, crops, lights and any biomanufacturing hardware all add heat, CO\textsubscript{2} and water vapour to one
+ventilated volume, so where things are placed, how the air is moved and where it is measured are design decisions.
+
+ASTRO-USA is an analog habitat being developed at Purdue University \citep{peters2026astro}. Its first physical module, the
+Food Production Module, is a converted shipping container holding a vertical nutrient-film (NFT) hydroponic wall of
+\NTowers{} towers with \NSitesPerTower{} sites each (\NSites{} plant sites), smaller hydroponic systems, a
+bay for bioreactor payloads, a battery bank and a work space, with an HVAC unit in
+an attic at one end. The paper gives a dimensioned floor plan and an electrical budget of \LoadMax~W maximum and
+\LoadAvg~W average \citep{peters2026astro}; much else needed to predict the module's air (the HVAC unit, the
+lighting, the envelope and the exact payloads) is not yet specified.
+
+Computational fluid dynamics is an established tool for room air distribution \citep{nielsen2015fifty}, but its
+predictions depend on the turbulence model \citep{chen1995kepsilon} and the mesh, so they need validation and an
+uncertainty estimate \citep{celik2008gci}. They also depend on geometry and loads that, for a facility still being
+designed, change often and are held in different places by different people. A model that is only as good as its
+least-documented input is hard to trust or update.
+
+Here we build the FPM from a single sourced ledger in which every value is either quoted from a source or declared as
+an assumption, and generate from it engineering CAD, CFD cases and a VR scene for shared design review, so that a
+corrected input propagates to every output. We validate the CFD set-up against a ventilated-room benchmark, quantify
+its mesh and turbulence-model uncertainty, and use it to examine occupancy, airflow, biomanufacturing off-gas siting,
+lighting power, HVAC failure and sensor placement. Because many inputs are still assumptions, the results are a
+screening of the design space and a list of the facts the team can supply to sharpen it, not predictions of the
+built module.
+
+\section{Methods}
+\subsection{Sources and the ledger}
+Every dimension and load is a ledger record carrying its value, unit and either a source with a verbatim quote or a
+declared assumption with its reason; the build refuses anything else. Of the \NRecords{} records, \NSpecified{} are
+quoted from sources, \NDerived{} are derived from them (for example by vector extraction) and \NAssumed{} are
+assumptions, most of which only the ASTRO-USA team can replace. The floor plan was extracted from the vector
+geometry of Figure~2 of \citet{peters2026astro}: all \FigTwoDims{} printed dimensions agree with their own dimension
+lines within \FigTwoMaxErrIn{}~in. Container dimensions come from a manufacturer's specification \citep{seacube40hc}
+and crew metabolic loads from BVAD Table~3-26 \citep{bvad2022}.
+
+\subsection{Geometry tiers}
+A parts registry turns the ledger into engineering CAD (build123d; STEP, STL, GLB and dimensioned DXF drawings), into
+CFD geometry with named patches and source zones, and into a procedural VR scene at three levels of detail with
+per-node metadata, colliders and a walkable navigation mesh. The bioreactor payloads are generic placeholders, represented
+by their outer envelopes, gas ports and loads only.
+
+\subsection{Airflow CFD}
+OpenFOAM \citep{openfoam2606} in a digest-pinned container. The living space (\BaseVolume{}~m\textsuperscript{3}
+of air) is meshed with snappyHexMesh; the attic HVAC unit is represented by a supply and a return grille with equal
+mass flow. CO\textsubscript{2}, water vapour and the age of air are transported as scalars relative to the supply
+air. Steady RANS runs did not settle (a cold supply jet in a heated room), so each case is solved as a transient
+(buoyantPimpleFoam) over three room flush times ($V/Q$) and averaged over the last two. Two cases needed longer:
+the payload-siting case was continued for three more flush times with a fresh averaging window, and the half-airflow
+case, which was still settling, was run uninterrupted for six flush times and averaged over the last three (a
+restarted extension of it was discarded because the restart itself disturbed the solution; see Discussion). Every run must close its mass, heat,
+CO\textsubscript{2}, H\textsubscript{2}O and age-of-air balances within 1\,\% and be statistically stationary before
+any result is used. Discretisation uncertainty follows \citet{celik2008gci} on three meshes (effective cell sizes
+\GciHFine, \GciHMed{} and \GciHCoarse~mm); a GCI is quoted only where the mesh-to-mesh differences exceed the
+time-averaging noise and the observed order is plausible.
+
+\subsection{Validation and turbulence model}
+The IEA Annex 20 two-dimensional isothermal test case \citep{nielsen1990annex20} was solved with the habitat cases'
+wall functions and schemes on three meshes and compared with laser-Doppler measurements \citep{aalborg2006lda}.
+The SST $k$--$\omega$ model \citep{menter1994} had RMS errors of \SstLo--\SstHi{} of the inlet velocity and the
+standard $k$--$\varepsilon$ model \citep{launder1974} \KeLo--\KeHi; the scenario runs therefore use
+$k$--$\varepsilon$. The buoyant variant of the benchmark has no measurements.
+
+\section{Results}
+\subsection{Baseline}
+The time-averaged baseline (\BaseCells{} cells) closes its balances with errors of \BaseHeatErr\,\% (heat),
+\BaseCOTwoErr\,\% (CO\textsubscript{2}) and \BaseAgeErr\,\% (age of air). Across the three meshes, room-wide
+means change by at most \GciDomainMax\,\% and local values by up to \GciLocalMax\,\%; the room-mean temperature rise
+has a GCI of \GciRoomT\,\% (observed order \GciRoomP, at the lower edge of the plausible range, so a
+conservative figure). Repeating the baseline with $k$--$\varepsilon$ changes room-wide means by at most
+\ModelDomainMax\,\%, local values by up to \ModelLocalMax\,\% and air speeds by up to \ModelSpeedMax\,\%: the
+room-scale picture holds under both mesh and turbulence model, while single-point values remain uncertain under both.
+
+\subsection{Occupancy and airflow}
+With six crew at once the room-mean CO\textsubscript{2} rise grows $\times$\StwoCOTwoRatio{} (to \StwoCOTwo~ppm above the supply air) and the temperature rise $\times$\StwoTRatio. Halving the airflow raises the temperature rise $\times$\SfiveaTRatio, CO\textsubscript{2} $\times$\SfiveaCOTwoRatio{} and the age of air $\times$\SfiveaAgeRatio{}, more than the $\times$2 of a perfectly mixed room: mixing deteriorates at low flow. Expressed as the air-change
+efficiency (the nominal time constant divided by twice the room-mean age of air, 0.5 for complete mixing;
+\citealp{sandberg1983moments}), the baseline is at \BaseACE{} and half airflow at \SfiveaACE. The double-airflow case did not reach a statistically stationary state within its run and is not reported.
+
+\subsection{Bioreactor off-gas siting}
+The placeholder bioreactor rack's off-gas adds about \OffgasMixed~ppm of CO\textsubscript{2} when mixed through the room, against
+about \BaseReturnCOTwo~ppm from two working crew; piped to the hydroponic wall it raises the canopy zone by
+\OffgasCanopyNFT~ppm ($k$--$\varepsilon$ run).
+
+\subsection{Lighting power}
+If the stated \LoadMax~W maximum draw includes the grow lights, the \WallArea~m\textsuperscript{2} NFT wall cannot exceed
+\LightMaxPPF~$\mu$mol\,m$^{-2}$\,s$^{-1}$ even with every watt going to light at the best achieved fixture efficacy
+(\LightEff~$\mu$mol\,J$^{-1}$) \citep{kusuma2020led}, below the \MecLo--\MecHi~$\mu$mol\,m$^{-2}$\,s$^{-1}$
+range of BVAD's lettuce crop model \citep{bvad2022}; \LightPowerNeeded~W would be needed for lights alone.
+
+\subsection{HVAC failure}
+With the HVAC off and the door shut, CO\textsubscript{2} in the \SthreeVolume~m\textsuperscript{3} of air rises
+from the outdoor level (\OutdoorCOTwo~ppm) \citep{noaa2026co2} to the OSHA permissible exposure limit
+\citep{osha1910} in \SthreeSixCrew~h with six crew and \SthreeTwoCrew~h with two if the container is airtight.
+
+\subsection{Layout and sensors}
+The narrowest clear aisle is \AisleMin~m; keeping clear of equipment leaves \WalkArea{} of the
+\FloorArea~m\textsuperscript{2} floor walkable. Scoring every wall position against the occupied-zone mean over \SensorRuns{} passing $k$--$\varepsilon$ runs, the most representative single sensor sits on \SensorWhere{} at \SensorZ~m, within \SensorT~K and \SensorCOTwo\,\% (CO\textsubscript{2} excess) in every run and \SensorClear~m from the nearest growing system.
+
+\section{Discussion}
+\paragraph{What the model can say now.} With the HVAC unit, lighting and envelope still unknown, the model is a
+screening tool. Its most robust outputs are room-scale: room-mean temperature rise, CO\textsubscript{2} and age of
+air changed by a few per cent between meshes and between turbulence models, whereas values at single points (a
+probe beside a crewmember, a position along the aisle) changed by up to \GciLocalMax--\ModelLocalMax\,\%. Decisions
+that depend on room-scale balances (how much CO\textsubscript{2} a source adds, how ventilation rate trades against
+temperature) can therefore be explored now; decisions that hinge on the air at a specific point need finer meshes
+and, above all, measurements.
+
+\paragraph{Ventilation.} Halving the airflow more than doubled the room's CO\textsubscript{2} and temperature rise
+and reduced the air-change efficiency from \BaseACE{} to \SfiveaACE, so the room mixes less well at low flow, not
+only less often. The airflow of the attic unit, and whether it brings in outdoor air at all, therefore matter more
+than any placement question studied here. If the unit only recirculates room air, CO\textsubscript{2} accumulates as
+in the HVAC-off case: \SthreeSixCrew~h to the OSHA limit with six crew in an airtight module. The limit is an
+eight-hour time-weighted average, and real leakage would slow the rise, so this is a planning bound rather than a
+hazard prediction; a door-shut CO\textsubscript{2} decay test would measure the leakage that decides it.
+
+\paragraph{Bioreactor payloads.} At the placeholder off-gas rate, routing the bioreactors' CO\textsubscript{2}
+to the hydroponic wall raises the canopy by about \OffgasCanopyNFT~ppm, which is small beside the crew's contribution.
+At these rates the payloads are neither a CO\textsubscript{2} hazard nor a useful CO\textsubscript{2} supply for the
+plants; that conclusion would change only if their real fluxes are much larger than the planning values used here.
+
+\paragraph{Lighting and plants.} If the \LoadMax~W budget includes the grow lights, the hydroponic wall cannot reach
+the light levels that NASA's lettuce crop model assumes with fixtures at the best efficacy achieved to date. Either the lighting sits outside
+the stated budget or the crop will be strongly light-limited; which of the two holds changes the expected yield and is
+the main reason plant gas exchange is not yet coupled into the CFD. Until it is, the plants appear only as LED heat,
+which is why the sensor ranking excludes positions next to them.
+
+\paragraph{Sensor placement.} A single wall sensor on \SensorWhere{} at \SensorZ~m stayed within \SensorT~K and
+\SensorCOTwo\,\% of the occupied-zone mean across \SensorRuns{} operating conditions. That makes it a reasonable first
+position for the module's monitoring and, once logging, a source of the measurements the model needs for validation.
+
+\paragraph{Lessons for modelling small ventilated habitats.} Three practical points emerged. Steady RANS did not
+settle for a cold supply jet in a heated room, so time-averaged transients with explicit balance and stationarity
+gates were needed. With fixed mass flows at both grilles the room behaves as a sealed volume whose pressure rises as
+it warms; restarting such a run after a large pressure drift injected energy into the solution (the restarted
+half-airflow case showed a step in room-mean temperature at the restart), so long cases are better run uninterrupted. And mesh-uncertainty estimates
+from time-averaged fields are fragile when mesh-to-mesh differences approach the averaging noise; reporting the
+spread alongside the GCI, and quoting a GCI only where both tests pass, avoids over-reading them.
+
+\paragraph{Limitations.} The HVAC unit, its supply temperature and outdoor-air fraction are placeholders; the walls
+are adiabatic; meshes are coarse; the validation is isothermal only; plants and fungi exchange no gas; payloads are
+modelled as envelopes with planning-value fluxes; and the double-airflow case did not reach a stationary state within
+its run and is not reported. Each of these is a ledger entry or a TEAM\_INPUTS item, so replacing it with the team's
+data re-runs the same pipeline.
+
+\section*{Data and code availability}
+Code, ledger and results: \todo{repository URL once public, and Zenodo DOI}. The ICES-2026-251 paper and slides
+are not redistributed.
+
+\section*{Author contributions}
+\todo{draft for the authors to confirm or replace (CRediT):} R.B.: conceptualisation, methodology, software,
+validation, formal analysis, writing (original draft). J.M.P.: \todo{for example ASTRO-USA FPM design and source
+data; writing (review and editing)}. D.M.P.: \todo{for example supervision; writing (review and editing)}.
+
+\section*{Use of AI tools}
+\todo{draft for the authors to confirm against the target journal's policy:} The model code, simulations, analyses
+and a first draft of this text were produced with an AI coding assistant (Claude, Anthropic) under the direction of
+R.B. Every source value, citation and reported number was checked against its primary source or the generated result
+files, as documented in the repository; the authors take responsibility for the content.
+
+\section*{Competing interests}
+\todo{to be declared by the authors.}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+\end{document}

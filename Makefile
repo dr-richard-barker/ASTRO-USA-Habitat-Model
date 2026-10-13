@@ -1,4 +1,4 @@
-.PHONY: all fig2 cad check cfd-coarse post light docs test vr drawings report
+.PHONY: manuscript all fig2 cad check cfd-coarse post light docs test vr drawings report
 all: fig2 cad check docs test
 fig2:        ## needs the team PDF in sources/private/
 	uv run python -I sources/extract_fig2.py sources/private/ICES-2026-251.pdf sources/fig2_geometry.json
@@ -26,3 +26,7 @@ drawings:
 	uv run python -m habitat.drawings_cad
 report: drawings
 	uv run python -m habitat.report
+
+manuscript:   ## numbers from the result files, then the PDF (build products are git-ignored)
+	uv run python -m habitat.manuscript_numbers
+	cd manuscript && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
