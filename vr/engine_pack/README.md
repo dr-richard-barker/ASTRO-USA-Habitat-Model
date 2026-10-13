@@ -4,19 +4,21 @@ Built by `make vr` into `out/vr/` (not committed; large binaries go to a GitHub 
 
 | File | Use |
 |---|---|
-| `fpm_vr_lod0.glb` | hyper-detail glTF 2.0 (172 k triangles at M0) — Unreal (glTF importer / Datasmith), Unity (glTFast), Omniverse, Blender |
-| `fpm_vr_lod1.glb` | headset tier (~48 k triangles) |
-| `fpm_vr_lod2.glb` | web tier (~18 k triangles) |
+| `fpm_vr_lod0.glb` | hyper-detail glTF 2.0 — Unreal (glTF importer / Datasmith), Unity (glTFast), Omniverse, Blender |
+| `fpm_vr_lod1.glb` | headset tier (budget 500 k triangles) |
+| `fpm_vr_lod2.glb` | web tier (budget 300 k triangles) |
 | `fpm_vr_lod0.usdz` / `.usdc` | OpenUSD — visionOS / Reality Composer Pro, Omniverse (`usdchecker`: Success) |
 | `fpm_vr_lod0.fbx` | FBX for engines that prefer it (custom properties included) |
 | `fpm_vr_lod0.blend` | Blender source scene |
+
+Triangle and draw counts for the current build are in `out/vr/VR_QA.json` (written by `make vr`).
 
 **Conventions.** glTF: metres, +Y up (Blender exporter maps model (x, y, z) → (x, z, −y)); the model frame is
 x along the container from the door end, y from the printed bottom wall of ICES-2026-251 Fig 2 toward the hydroponic
 wall, z up. CFD overlays (`vr/web/assets/*_age_*.glb`) use the same mapping and line up without offsets.
 
 **Per-node metadata (glTF `extras`, FBX custom properties).** `element` (scene element id), `part` (registry part),
-`layer` (structure / plants / water / power / air / crew / work / controls), `illustrative` (true = generic stand-in for
+`layer` (e.g. structure, plants, power, air, crew, work, controls, payloads, site), `illustrative` (true = generic stand-in for
 equipment the paper does not describe), `refs` (ledger records the element was built from). The root node carries
 `ledger_digest`: compare it with `ASSUMPTIONS.md` to know which ledger version you are looking at.
 

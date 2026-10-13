@@ -185,7 +185,9 @@ renderer.domElement.addEventListener("click", e => {
   const r = renderer.domElement.getBoundingClientRect();
   ptr.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
   ray.setFromCamera(ptr, camera);
-  const hit = ray.intersectObjects(scene.children, true).find(h => h.object.visible);
+  // three.js raycasts hidden objects too; a mesh counts as shown only if it and every ancestor are visible
+  const shown = o => { for (; o; o = o.parent) if (!o.visible) return false; return true; };
+  const hit = ray.intersectObjects(scene.children, true).find(h => shown(h.object));
   const m = hit ? hit.object.userData.meta || {} : null;
   if (collab.onClick(hit, m, t => { document.getElementById("pick").textContent = t; })) return;
   document.getElementById("pick").textContent = m ? `${m.label || m.element} — ${LAYER_NAMES[m.layer] || m.layer}` +
