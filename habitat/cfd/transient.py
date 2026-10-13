@@ -91,7 +91,9 @@ def make(steady: Path, flush: float = 3.0, avg_from: float = 1.0, nprocs: int = 
     sol = sol.replace("SIMPLE\n{", "PIMPLE\n{\n    nOuterCorrectors 3;\n    nCorrectors 2;")
     sol = re.sub(r"momentumPredictor no;", "momentumPredictor yes;", sol)
     # every solver also needs a "Final" variant for the last outer corrector
-    sol = re.sub(r'("\(U\|h\|k\|omega\)")', r'"(U|h|k|omega)(Final)?"', sol)
+    sol = re.sub(r'"\(U\|h\|k\|omega(\|epsilon)?\)"', r'"(U|h|k|omega|epsilon)(Final)?"', sol)
+    if '"(U|h|k|omega|epsilon)(Final)?"' not in sol:
+        raise ValueError("fvSolution rewrite for the PIMPLE Final solvers failed")
     sol = re.sub(r'("\(dCO2\|dH2O\|AoA\|tr_\.\*\)")', r'"(dCO2|dH2O|AoA|tr_.*)(Final)?"', sol)
     sol = sol.replace("    p_rgh\n    {", "    \"p_rgh(Final)?\"\n    {")
     # buoyantPimpleFoam solves the continuity equation for rho (and rhoFinal): a diagonal solve, no iteration

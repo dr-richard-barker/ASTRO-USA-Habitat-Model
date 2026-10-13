@@ -1,0 +1,8 @@
+# CFD modelling choices that are not geometry or loads.
+cfd:
+  turbulence_model:
+    value: kEpsilon
+    unit: '-'
+    kind: assumed
+    why: "Chosen from the IEA Annex 20 2-D isothermal validation (results/cfd/annex20.md): with the habitat cases' wall functions and schemes, standard k-epsilon reproduced the measured floor return flow and ceiling-jet separation that kOmegaSST missed, at every mesh tested. Isothermal evidence only (the buoyant Annex 20 case has no data). Runs built before 2026-10-13 15:00 used kOmegaSST (their case files and ledger digest record it). User decision 2026-10-13."
+    ask_team: false

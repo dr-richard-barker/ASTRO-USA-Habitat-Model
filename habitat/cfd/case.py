@@ -157,6 +157,10 @@ def s6_tracers(L, parts, h_mm: float) -> tuple[list, dict, dict]:
 
 def build(mesh: str = "coarse", nprocs: int = 4, tag: str = "", scenario: str = "m0", end_iter: int = 4000) -> Path:
     L, parts = build_registry(scenario=scenario)
+    global TURB
+    TURB = L.val("cfd.turbulence_model")
+    if TURB not in ("kOmegaSST", "kEpsilon"):
+        raise ValueError(f"unsupported turbulence model {TURB}")
     case = RUNS / f"fpm_{scenario}_{mesh}{tag}"
     tri = case / "constant" / "triSurface"
     geo = write_geometry(parts, tri)
@@ -276,7 +280,7 @@ mergeTolerance 1e-6;
         "mixture": {"specie": {"molWeight": M_AIR * 1000}, "equationOfState": {"pRef": p0},
                     "thermodynamics": {"Cp": props["cp"], "Hf": 0}, "transport": {"mu": props["mu"], "Pr": Pr}}})
     write(case / "constant" / "turbulenceProperties", "dictionary", "turbulenceProperties",
-          {"simulationType": "RAS", "RAS": {"RASModel": "kOmegaSST", "turbulence": "on", "printCoeffs": "on"}})
+          {"simulationType": "RAS", "RAS": {"RASModel": TURB, "turbulence": "on", "printCoeffs": "on"}})
     write(case / "constant" / "g", "uniformDimensionedVectorField", "g",
           "dimensions [0 1 -2 0 0 0 0];\nvalue (0 0 -9.80665);\n")
 
@@ -312,6 +316,9 @@ mergeTolerance 1e-6;
     a_sup = (sup.hi[1] - sup.lo[1]) * (sup.hi[2] - sup.lo[2]) / 1e6          # grille area, m2
     kin = 1.5 * (0.05 * Q / a_sup) ** 2     # 5 % intensity at the supply face velocity (initial value only)
     U, prgh, p, T, k, om, nut, at = {}, {}, {}, {}, {}, {}, {}, {}
+    # second turbulence field: omega (kOmegaSST) or epsilon = 0.09 k omega (kEpsilon); initial values only
+    w_name, w_dims, w_init = (("omega", "[0 0 -1 0 0 0 0]", 1.0) if TURB == "kOmegaSST"
+                              else ("epsilon", "[0 2 -3 0 0 0 0]", 0.09 * kin))
     TR = [f"tr_{r}" for r in tracers]
     S = {s: {} for s in ("dCO2", "dH2O", "AoA", *TR)}
     for pf in pat:
@@ -323,7 +330,10 @@ mergeTolerance 1e-6;
             U[pf] = {"type": "flowRateInletVelocity", "massFlowRate": mdot, "rhoInlet": rho_s, "value": "uniform (0 0 0)"}
             T[pf] = {"type": "fixedValue", "value": f"uniform {Ts}"}
             k[pf] = {"type": "turbulentIntensityKineticEnergyInlet", "intensity": 0.05, "value": f"uniform {kin}"}
-            om[pf] = {"type": "turbulentMixingLengthFrequencyInlet", "mixingLength": 0.01, "value": "uniform 1"}
+            om[pf] = ({"type": "turbulentMixingLengthFrequencyInlet", "mixingLength": 0.01, "value": "uniform 1"}
+                      if TURB == "kOmegaSST" else
+                      {"type": "turbulentMixingLengthDissipationRateInlet", "mixingLength": 0.01,
+                       "value": f"uniform {0.09 * kin}"})
             nut[pf] = {"type": "calculated", "value": "uniform 0"}
             at[pf] = {"type": "calculated", "value": "uniform 0"}
             for s in S:
@@ -332,7 +342,7 @@ mergeTolerance 1e-6;
             U[pf] = {"type": "flowRateOutletVelocity", "massFlowRate": mdot, "rhoOutlet": rho0, "value": "uniform (0 0 0)"}
             T[pf] = {"type": "inletOutlet", "inletValue": f"uniform {T0}", "value": f"uniform {T0}"}
             k[pf] = {"type": "inletOutlet", "inletValue": f"uniform {kin}", "value": f"uniform {kin}"}
-            om[pf] = {"type": "inletOutlet", "inletValue": "uniform 1", "value": "uniform 1"}
+            om[pf] = {"type": "inletOutlet", "inletValue": f"uniform {w_init}", "value": f"uniform {w_init}"}
             nut[pf] = {"type": "calculated", "value": "uniform 0"}
             at[pf] = {"type": "calculated", "value": "uniform 0"}
             for s in S:
@@ -341,7 +351,8 @@ mergeTolerance 1e-6;
             U[pf] = {"type": "noSlip"}
             T[pf] = {"type": "zeroGradient"}                      # adiabatic (scenario_m0.walls_adiabatic)
             k[pf] = {"type": "kqRWallFunction", "value": f"uniform {kin}"}
-            om[pf] = {"type": "omegaWallFunction", "value": "uniform 1"}
+            om[pf] = {"type": "omegaWallFunction" if TURB == "kOmegaSST" else "epsilonWallFunction",
+                      "value": f"uniform {w_init}"}
             for s in S:
                 S[s][pf] = {"type": "zeroGradient"}
     write_field(case, "U", "[0 1 -1 0 0 0 0]", "uniform (0 0 0)", U, cls="volVectorField")
@@ -353,7 +364,7 @@ mergeTolerance 1e-6;
     T_init = Ts + sum(p.heat_W for p in parts) / (mdot * props["cp"])
     write_field(case, "T", "[0 0 0 1 0 0 0]", f"uniform {T_init}", T)
     write_field(case, "k", "[0 2 -2 0 0 0 0]", f"uniform {kin}", k)
-    write_field(case, "omega", "[0 0 -1 0 0 0 0]", "uniform 1", om)
+    write_field(case, w_name, w_dims, f"uniform {w_init}", om)
     write_field(case, "nut", "[0 2 -1 0 0 0 0]", "uniform 0", nut)
     write_field(case, "alphat", "[1 -1 -1 0 0 0 0]", "uniform 0", at)
     for s in S:
@@ -418,7 +429,7 @@ mergeTolerance 1e-6;
     funcs["volAvg"] = {"type": "volFieldValue", "libs": '("libfieldFunctionObjects.so")', "writeControl": "timeStep",
                        "writeInterval": every, "writeFields": "false", "regionType": "all", "operation": "volAverage",
                        "fields": scal_all}
-    funcs["residuals"] = {"type": "solverInfo", "libs": '("libutilityFunctionObjects.so")', "fields": "(U h p_rgh k omega)"}
+    funcs["residuals"] = {"type": "solverInfo", "libs": '("libutilityFunctionObjects.so")', "fields": f"(U h p_rgh k {w_name})"}
     write(case / "system" / "controlDict", "dictionary", "controlDict", {
         "application": "buoyantSimpleFoam", "startFrom": "latestTime", "startTime": 0, "stopAt": "endTime",
         "endTime": end_iter, "deltaT": 1, "writeControl": "timeStep", "writeInterval": 500, "purgeWrite": 2,
@@ -429,7 +440,7 @@ mergeTolerance 1e-6;
         "gradSchemes": {"default": "Gauss linear"},
         "divSchemes": {"default": "none", "div(phi,U)": "bounded Gauss linearUpwind grad(U)",
                        "div(phi,h)": "bounded Gauss linearUpwind grad(h)", "div(phi,K)": "bounded Gauss upwind",
-                       "div(phi,k)": "bounded Gauss upwind", "div(phi,omega)": "bounded Gauss upwind",
+                       "div(phi,k)": "bounded Gauss upwind", f"div(phi,{w_name})": "bounded Gauss upwind",
                        "div(phi,dCO2)": "bounded Gauss limitedLinear 1", "div(phi,dH2O)": "bounded Gauss limitedLinear 1",
                        "div(phi,AoA)": "bounded Gauss limitedLinear 1",
                        **{f"div(phi,{t})": "bounded Gauss limitedLinear 1" for t in TR},
@@ -441,7 +452,7 @@ mergeTolerance 1e-6;
     write(case / "system" / "fvSolution", "dictionary", "fvSolution", {
         "solvers": {
             "p_rgh": {"solver": "GAMG", "smoother": "DIC", "tolerance": 1e-7, "relTol": 0.01},
-            "\"(U|h|k|omega)\"": {"solver": "smoothSolver", "smoother": "symGaussSeidel", "tolerance": 1e-8,
+            "\"(U|h|k|omega|epsilon)\"": {"solver": "smoothSolver", "smoother": "symGaussSeidel", "tolerance": 1e-8,
                                   "relTol": 0.1},
             # steady scalars: Gauss-Seidel smoother (PBiCGStab broke down with a SIGFPE on dH2O in run2)
             "\"(dCO2|dH2O|AoA|tr_.*)\"": {"solver": "smoothSolver", "smoother": "GaussSeidel", "nSweeps": 2,
@@ -449,12 +460,12 @@ mergeTolerance 1e-6;
         "SIMPLE": {"momentumPredictor": "no", "nNonOrthogonalCorrectors": 0,
                    "pRefPoint": Raw(f"({loc[0]:.6g} {loc[1]:.6g} {loc[2]:.6g})"), "pRefValue": p0},
         "relaxationFactors": {"fields": {"rho": 1.0, "p_rgh": 0.7},
-                              "equations": {"U": 0.3, "h": 0.5, "\"(k|omega)\"": 0.5,
+                              "equations": {"U": 0.3, "h": 0.5, "\"(k|omega|epsilon)\"": 0.5,
                                             "\"(dCO2|dH2O|AoA|tr_.*)\"": 0.9}}})
     write(case / "system" / "decomposeParDict", "dictionary", "decomposeParDict",
           {"numberOfSubdomains": nprocs, "method": "scotch"})
 
-    meta = {"case": case.name, "scenario": scenario, "mesh": mesh,
+    meta = {"case": case.name, "scenario": scenario, "mesh": mesh, "turbulence_model": TURB,
             "tracers": {r: [{"zone": z, "mol_s": m} for z, m in v] for r, v in tracers.items()},
             "tracer_info": tracer_info, "probes": probes, "cell_mm": MESH_H_MM[mesh], "background_cells": int(np.prod(n)),
             "domain_bounds_m": [lo.tolist(), hi.tolist()],

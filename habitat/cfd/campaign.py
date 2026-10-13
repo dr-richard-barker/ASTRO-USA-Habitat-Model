@@ -23,8 +23,10 @@ from .. import ROOT, RUNS
 from . import post
 from .case import build as build_case
 
-# (scenario, case tag): S6 is re-run on the current ledger (re-synced payloads; the sensor module's side sample ports)
-QUEUE = [("s6", "_r2"), ("s2", ""), ("s5a", ""), ("s5b", "")]
+# (scenario, case tag). All with standard k-epsilon (ledger cfd.turbulence_model, chosen 2026-10-13 from the Annex 20
+# validation): the baseline first, so last night's kOmegaSST findings can be compared, then the scenarios. S6 also
+# picks up the re-synced payloads (the sensor module's side sample ports).
+QUEUE = [("m0", "_ke"), ("s6", "_ke"), ("s2", "_ke"), ("s5a", "_ke"), ("s5b", "_ke")]
 OUT = ROOT / "results" / "cfd"
 GCI_STATUS = OUT / "gci_m0.STATUS"
 
@@ -73,6 +75,9 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     st = OUT / "campaign.STATUS"
     log: dict = {"queue": [f"{s}{t}" for s, t in QUEUE], "results": {}}
+    from ..provenance import Ledger
+    if Ledger().val("cfd.turbulence_model") != "kEpsilon":
+        raise SystemExit("campaign queue is tagged _ke but the ledger turbulence model is not kEpsilon")
     st.write_text(f"WAITING for GCI ({os.getpid()})\n")
     while alive(GCI_STATUS):
         time.sleep(120)
@@ -95,7 +100,7 @@ def main() -> int:
     # sensor placement over every time-averaged run that passed its gates (baseline + campaign)
     try:
         from . import sensors
-        passed = [RUNS / "fpm_m0_coarse_tr"] + [RUNS / v["case"] for v in log["results"].values() if v.get("pass")]
+        passed = [RUNS / v["case"] for v in log["results"].values() if v.get("pass")]   # one turbulence model only
         sensors.write(sensors.score(passed))
         lines.append(f"sensor placement: {len(passed)} cases")
     except BaseException as e:  # noqa: BLE001
