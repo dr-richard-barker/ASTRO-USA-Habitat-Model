@@ -12,6 +12,7 @@ import matplotlib
 import numpy as np
 
 matplotlib.use("Agg")
+matplotlib.rcParams["svg.hashsalt"] = "astro-usa-fpm"     # stable SVG ids: rebuilds give identical files
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.backends.backend_pdf import PdfPages  # noqa: E402
 
@@ -107,8 +108,8 @@ def main():
              f"(digest {L.digest()}). Solid blue: equipment (CFD blockages); dashed green: source zones (canopy, work space); "
              "dash-dot orange: payload envelopes; teal: HVAC grilles. Heights of most equipment are ASSUMED (see "
              "ASSUMPTIONS.md); plan dimensions are from ICES-2026-251 Fig 2. Not for construction.", 230)), fontsize=6.5)
-    for ext in ("svg", "pdf"):
-        fig.savefig(OUT / f"FPM_GA.{ext}")
+    fig.savefig(OUT / "FPM_GA.svg", metadata={"Date": None})
+    fig.savefig(OUT / "FPM_GA.pdf", metadata={"CreationDate": None})
     fig.savefig(OUT / "FPM_GA.png", dpi=110)
     plt.close(fig)
     print(f"wrote {OUT}/FPM_GA.(svg|pdf|png)")
