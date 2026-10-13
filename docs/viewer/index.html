@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASTRO-USA Habitat Model</title>
+<style>
+  :root { --bg:#f4f6f8; --fg:#1d2733; --panel:#ffffffee; --muted:#5b6774; --accent:#2f5985; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#12161b; --fg:#e6ebf0; --panel:#1b2129ee; --muted:#9aa7b4; --accent:#7fb0e0; } }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:14px/1.4 system-ui,sans-serif; }
+  #view { position:fixed; inset:0; }
+  #panel { position:fixed; top:12px; left:12px; max-width:min(320px, calc(100vw - 24px)); background:var(--panel);
+           border-radius:10px; padding:12px 14px; box-shadow:0 2px 12px #0003; }
+  h1 { font-size:15px; margin:0 0 4px; } p { margin:4px 0; color:var(--muted); font-size:12px; }
+  #layers label { display:block; font-size:13px; }
+  #pick { margin-top:8px; font-size:13px; min-height:1.4em; color:var(--accent); }
+  #collab { margin-top:10px; padding-top:8px; border-top:1px solid #8884; font-size:13px; }
+  #collab input { width:9em; margin:4px 4px 4px 0; font:inherit; }
+  #collab button { margin:2px 4px 2px 0; font:inherit; cursor:pointer; }
+  .collab-status { color:var(--muted); font-size:12px; margin-top:4px; }
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div id="view"></div>
+<div id="panel">
+  <h1>ASTRO-USA Food Production Module</h1>
+  <p><span id="intro">Generated from the sourced ledger (ICES-2026-251). Drag to orbit, scroll to zoom, click anything.</span> <a id="lodlink"></a></p>
+  <div id="layers"></div>
+  <div id="pick" aria-live="polite"></div>
+</div>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { VRButton } from "three/addons/webxr/VRButton.js";
+import { XRControllerModelFactory } from "three/addons/webxr/XRControllerModelFactory.js";
+import { initCollab } from "./collab.js";
+
+const params = new URLSearchParams(location.search);
+const LOD = ["1", "2"].includes(params.get("lod")) ? params.get("lod") : "2";
+const LAYER_NAMES = { structure:"Container & structure", plants:"Plants & growing systems", water:"Water", power:"Power & electrical",
+  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls", payloads:"Biomanufacturing payloads (envelopes)", site:"Mini-Hab site (concept)",
+  primary:"Primary habitat (concept)" };
+
+const el = document.getElementById("view");
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+el.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--bg").trim());
+const camera = new THREE.PerspectiveCamera(50, 1, 0.03, 200);
+const controls = new OrbitControls(camera, renderer.domElement);
+
+// ---- WebXR: player rig (dolly) carrying the camera; teleport on the floor; snap turn
+renderer.xr.enabled = true;
+const dolly = new THREE.Group(); scene.add(dolly);
+let floorMeshes = [];
+const XR_START = { pos: new THREE.Vector3(0.6, 0, -1.17), yaw: -Math.PI / 2 };   // door end, aisle centre, facing the attic
+renderer.xr.addEventListener("sessionstart", () => {
+  dolly.add(camera); dolly.position.copy(XR_START.pos); dolly.rotation.set(0, XR_START.yaw, 0);
+  window.__habitat.xr = "in-session";
+});
+renderer.xr.addEventListener("sessionend", () => { scene.add(camera); dolly.position.set(0, 0, 0); window.__habitat.xr = "ended"; });
+const marker = new THREE.Mesh(new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
+                              new THREE.MeshBasicMaterial({ color: 0x3fb6a8 }));
+marker.visible = false; scene.add(marker);
+const xrRay = new THREE.Raycaster(), tmpM = new THREE.Matrix4();
+const controllers = [0, 1].map(i => {
+  const c = renderer.xr.getController(i);
+  c.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0, -6)]),
+                       new THREE.LineBasicMaterial({ color: 0xffffff })));
+  c.addEventListener("selectend", () => { if (marker.visible) { dolly.position.set(marker.position.x, 0, marker.position.z); } });
+  dolly.add(c);
+  const grip = renderer.xr.getControllerGrip(i);
+  grip.add(new XRControllerModelFactory().createControllerModel(grip)); dolly.add(grip);
+  return c;
+});
+let turnReady = true;
+function xrFrame() {
+  marker.visible = false;
+  for (const c of controllers) {
+    tmpM.identity().extractRotation(c.matrixWorld);
+    xrRay.ray.origin.setFromMatrixPosition(c.matrixWorld);
+    xrRay.ray.direction.set(0, 0, -1).applyMatrix4(tmpM);
+    const hit = xrRay.intersectObjects(floorMeshes, false)[0];
+    if (hit) { marker.position.copy(hit.point); marker.visible = true; }
+  }
+  const src = renderer.xr.getSession()?.inputSources || [];
+  for (const s of src) {
+    const ax = s.gamepad?.axes; if (!ax || ax.length < 4) continue;
+    if (Math.abs(ax[2]) > 0.7 && turnReady) { dolly.rotation.y -= Math.sign(ax[2]) * Math.PI / 6; turnReady = false; }
+    if (Math.abs(ax[2]) < 0.3) turnReady = true;
+  }
+}
+scene.add(new THREE.HemisphereLight(0xffffff, 0x556070, 2.0));
+const sun = new THREE.DirectionalLight(0xffffff, 1.4); sun.position.set(6, 12, 4); scene.add(sun);
+
+const groups = {};
+const meta = o => {
+  let p = o, port = null;
+  while (p && !(p.userData && p.userData.element && !p.userData.port)) { if (p.userData?.port) port = p.userData; p = p.parent; }
+  const m = p ? { ...p.userData } : {};
+  return port ? { ...m, port: port.port, port_kind: port.port_kind, flow_L_min: port.flow_L_min, co2_g_day: port.co2_g_day } : m;
+};
+const SCENE = params.get("scene") === "primary" ? "primary" : "fpm";
+if (SCENE === "primary") {
+  document.querySelector("#panel h1").textContent = "ASTRO-USA primary habitat — CONCEPT";
+  document.getElementById("intro").textContent = "Design-study geometry from ledger/primary.yaml (not the team's design): " +
+    "spherical node, four modules, airlock. Volumes and the NASA NHV check are in results/primary_concept.md.";
+}
+new GLTFLoader().load(SCENE === "primary" ? "assets/primary_concept_lod2.glb" : `assets/fpm_vr_lod${LOD}.glb`, gltf => {
+  const root = gltf.scene;
+  root.traverse(o => {
+    if (!o.isMesh) return;
+    const m = meta(o); o.userData.meta = m;
+    if (o.material) o.material.side = THREE.DoubleSide;
+    if (m.element === "floor") floorMeshes.push(o);
+    (groups[m.layer || "structure"] ??= []).push(o);
+  });
+  scene.add(root);
+  const box = new THREE.Box3().setFromObject(root), c = box.getCenter(new THREE.Vector3()), s = box.getSize(new THREE.Vector3());
+  controls.target.set(c.x, 1.0, c.z);
+  camera.position.set(c.x - s.x * 0.08, c.y + s.x * 0.55, c.z + s.x * 0.85);
+  const lay = document.getElementById("layers");
+  for (const name of Object.keys(groups).sort()) {
+    const lab = document.createElement("label"), cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = true; cb.onchange = () => groups[name].forEach(m => m.visible = cb.checked);
+    const n = new Set(groups[name].map(m => m.userData.meta.element)).size;
+    lab.append(cb, ` ${LAYER_NAMES[name] || name} (${n})`); lay.append(lab);
+  }
+  if (SCENE === "primary") {     // FPM-only controls do not apply to the concept scene
+    window.__habitat = { lod: LOD, scene: SCENE, elements: [...new Set(Object.values(groups).flat().map(m => m.userData.meta.element))].sort(),
+                         size: s.toArray(), overlays: [], ports: [] };
+    document.getElementById("lodlink").hidden = true;
+    return;
+  }
+  const roofLab = document.createElement("label"), roofCb = document.createElement("input");
+  roofCb.type = "checkbox"; roofCb.checked = true;
+  roofCb.onchange = () => root.traverse(o => { if (o.isMesh && (/^roof_panel|^rail_top|^side_wall_ymin/.test(o.name) || o.userData.meta.element === "solar_array")) o.visible = roofCb.checked; });
+  roofLab.append(roofCb, " Roof, solar & near wall (untick to see inside)"); lay.append(roofLab);
+  // Mini-Hab site overlay (Fig 10, concept level): loaded on demand
+  const siteLab = document.createElement("label"), siteCb = document.createElement("input");
+  siteCb.type = "checkbox"; let site = null;
+  siteCb.onchange = () => {
+    if (site) { site.visible = siteCb.checked; return; }
+    new GLTFLoader().load("assets/fpm_site_lod2.glb", g => {
+      site = g.scene;
+      site.traverse(o => { if (o.isMesh) { o.userData.meta = meta(o); if (o.material) o.material.side = THREE.DoubleSide; } });
+      scene.add(site);
+      const b = new THREE.Box3().setFromObject(root).union(new THREE.Box3().setFromObject(site));
+      const cc = b.getCenter(new THREE.Vector3()), ss = b.getSize(new THREE.Vector3());
+      controls.target.set(cc.x, 1.0, cc.z); camera.position.set(cc.x, cc.y + ss.x * 0.6, cc.z + ss.x * 0.7);
+      const els = new Set(); site.traverse(o => { if (o.userData?.element) els.add(o.userData.element); });
+      window.__habitat.site = [...els].sort();
+    });
+  };
+  siteLab.append(siteCb, " Mini-Hab site: Lab, Crew Quarters, BioWaTERR (concept)"); lay.append(siteLab);
+  const ports = []; root.traverse(o => { if (o.userData?.port) ports.push({ port: o.userData.port, kind: o.userData.port_kind,
+    element: o.userData.element, flow: o.userData.flow_L_min, co2: o.userData.co2_g_day }); });
+  window.__habitat = { ports, lod: LOD, elements: [...new Set(Object.values(groups).flat().map(m => m.userData.meta.element))].sort(),
+                       size: s.toArray(), overlays: [], digest: root.children[0]?.userData?.ledger_digest,
+                       illustrative: [...new Set(Object.values(groups).flat().filter(m => m.userData.meta.illustrative).map(m => m.userData.meta.element))].sort() };
+  fetch("assets/overlays.json").then(r => r.ok ? r.json() : []).catch(() => []).then(list => {
+    for (const ov of list) new GLTFLoader().load("assets/" + ov.file, g => {
+      g.scene.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ vertexColors:true, side:THREE.DoubleSide });
+                                              o.userData.meta = { element: ov.label, layer: "cfd" }; } });
+      g.scene.visible = false; scene.add(g.scene); window.__habitat.overlays.push(ov.label);
+      const lab = document.createElement("label"), cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = false; cb.onchange = () => { g.scene.visible = cb.checked;
+        document.getElementById("pick").textContent = cb.checked ? ov.note : ""; };
+      lab.append(cb, " CFD: " + ov.label); lay.append(lab);
+    });
+  });
+});
+
+const collab = initCollab({ scene, camera, renderer, ui: document.getElementById("panel"),
+                            getDigest: () => window.__habitat?.digest });
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+renderer.domElement.addEventListener("click", e => {
+  const r = renderer.domElement.getBoundingClientRect();
+  ptr.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(scene.children, true).find(h => h.object.visible);
+  const m = hit ? hit.object.userData.meta || {} : null;
+  if (collab.onClick(hit, m, t => { document.getElementById("pick").textContent = t; })) return;
+  document.getElementById("pick").textContent = m ? `${m.label || m.element} — ${LAYER_NAMES[m.layer] || m.layer}` +
+    (m.illustrative ? " (illustrative stand-in, not in the paper)" : "") +
+    (m.envelope_only ? " (outer envelope only; placement illustrative)" : "") +
+    (m.port ? ` · port ${m.port} (${m.port_kind}${m.flow_L_min != null ? ", " + m.flow_L_min + " L/min" : ""}` +
+              `${m.co2_g_day != null ? ", CO₂ " + m.co2_g_day + " g/day" : ""})` : "") : "";
+});
+function resize() { const w = el.clientWidth, h = el.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener("resize", resize); resize();
+document.body.appendChild(VRButton.createButton(renderer));
+renderer.setAnimationLoop(t => { if (renderer.xr.isPresenting) xrFrame(); else controls.update(); collab.tick(t); renderer.render(scene, camera); });
+document.getElementById("lodlink").textContent = LOD === "2" ? "Higher detail (LOD1)" : "Lighter (LOD2)";
+document.getElementById("lodlink").href = "?lod=" + (LOD === "2" ? "1" : "2");
+</script>
+</body>
+</html>

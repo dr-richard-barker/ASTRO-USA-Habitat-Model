@@ -195,7 +195,15 @@ def main(argv=None):
         print(f"USDZ: usdchecker {'Success' if ok else 'FAILED'}")
         if not ok:
             raise SystemExit(1)
-    (out / ("PRIMARY_QA.json" if a.primary else "SITE_QA.json" if a.site else "VR_QA.json")).write_text(json.dumps(report, indent=1))
+    qa_file = out / ("PRIMARY_QA.json" if a.primary else "SITE_QA.json" if a.site else "VR_QA.json")
+    if qa_file.exists():               # merge: a partial rebuild (e.g. --lods 0) keeps the other levels' results
+        old = json.loads(qa_file.read_text())
+        if old.get("ledger_digest") == report["ledger_digest"]:
+            done = {g["lod"] for g in report["lods"]}
+            report["lods"] = sorted(report["lods"] + [g for g in old.get("lods", []) if g["lod"] not in done],
+                                    key=lambda g: g["lod"])
+            report.setdefault("usdz", old.get("usdz"))
+    qa_file.write_text(json.dumps(report, indent=1))
     if not all(g["pass"] for g in report["lods"]):
         raise SystemExit(1)
 
