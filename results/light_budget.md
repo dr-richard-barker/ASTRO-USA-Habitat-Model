@@ -1,4 +1,4 @@
-# Light budget of the NFT wall (ledger 9a0d9688950c7bc2)
+# Light budget of the NFT wall (ledger 886484fffd155504)
 
 If the FPM's stated budget (450 W maximum steady draw, ~8 kWh/day) includes the grow lights, how much light can reach 297 lettuce sites? Every watt is given to light at the best LED fixture efficacy achieved by 2020 (3 µmol/J), over BVAD's nominal 16 h photoperiod. BVAD's lettuce crop model is valid for 200–500 µmol/m²·s. (Physical ceiling for photosynthetic photons: 5.852 µmol/J at 700 nm.)
 

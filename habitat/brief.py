@@ -42,9 +42,22 @@ def main() -> None:
                    "The absolute numbers depend on the real attic unit (unknown).\n")
         if gci:
             ok = gci.get("all_gates_pass")
-            sizes = ", ".join(f"{d['h_m'] * 1000:.0f} mm" for d in gci["meshes"].values())
-            out.append(f"- **Mesh sensitivity.** Three meshes ({sizes}); "
-                       f"all pass their gates: {ok}. See the report for which quantities have a quotable GCI.\n")
+            sp = {k: abs(r["phi_fine"] - r["phi_coarse"]) / abs(r["phi_fine"]) * 100 for k, r in gci["gci"].items()
+                  if r["phi_fine"] and "U_" not in k}
+            dom = max(v for k, v in sp.items() if k.startswith("domain:"))
+            loc = max(v for k, v in sp.items() if not k.startswith("domain:"))
+            out.append(f"- **Mesh sensitivity.** On three meshes ({'all passing' if ok else 'not all passing'} their "
+                       f"checks), room-wide averages change by at most {dom:.0f} %, local values near the crew by up "
+                       f"to {loc:.0f} %: the room-scale picture is robust, single-point values need the finer mesh "
+                       "(checked with the earlier turbulence model; see the validation note).\n")
+    a20 = _j("results/cfd/annex20.json")
+    if a20:
+        def rng(model):
+            v = [e["rms"] for m, r in a20["runs"].items() if m.startswith(model) for e in r["errors"].values()]
+            return f"{min(v):.2f}–{max(v):.2f}"
+        out.append(f"- **Validation.** Against laser measurements of a standard ventilated-room benchmark (IEA "
+                   f"Annex 20, isothermal), standard k-ε errs by {rng('kEpsilon')} of the inlet velocity and the "
+                   f"model used first (kOmegaSST) by {rng('kOmegaSST')}, so the airflow model now uses k-ε.\n")
     if s6 and s6.get("pass"):
         r = s6["return_ppm"]
         lo, hi = f"{min(r.values()):.1f}", f"{max(r.values()):.1f}"
