@@ -23,5 +23,6 @@ vr:
 	uv run python -m habitat.vr.nav
 drawings:
 	uv run python -m habitat.drawings
+	uv run python -m habitat.drawings_cad
 report: drawings
 	uv run python -m habitat.report
