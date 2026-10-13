@@ -1,0 +1,81 @@
+# Primary ASTRO-USA habitat: CONCEPT GENERATOR inputs. The paper gives intent only (below); every geometric number is
+# a design-study variable for the team to change, not a design. Outputs are labelled concept everywhere.
+
+primary:
+  intent_shape:
+    value: "modular cylindrical and spherical sections, ISS-like"
+    unit: '-'
+    kind: specified
+    source: "ICES-2026-251, Section IV"
+    quote: "These modules will primarily be cylindrical and spherical in shape, reflecting their established use in space exploration."
+  intent_materials:
+    value: "aluminium or titanium (not yet selected)"
+    unit: '-'
+    kind: specified
+    source: "ICES-2026-251, Section IV"
+    quote: "Aluminum and titanium, both of which are established spaceflight structural materials, remain leading candidates for ASTRO-USA"
+  nhv_guideline:
+    value: 25.0
+    unit: m3/person
+    kind: specified
+    source: "Whitmire A. et al. (2014) Minimum Acceptable Net Habitable Volume for Long-Duration Exploration Missions: Subject Matter Expert Consensus Session Report, NASA HRP, JSC-CN-32284 (NTRS 20140016951)"
+    url: https://ntrs.nasa.gov/citations/20140016951
+    quote: "the SMEs, with concurrence of the NASA representatives, recommended a minimum acceptable NHV of 25 m3 (883 ft3) per person."
+  nhv_guideline_crew:
+    value: 6
+    unit: '-'
+    kind: specified
+    source: "Whitmire et al. (2014), NTRS 20140016951"
+    quote: "Assumes crew of 6; if crew number decreases, the volume per crewmember may increase"
+  crew:
+    value: 6
+    unit: '-'
+    kind: assumed
+    why: "The paper sizes the Mini-Hab for a crew of six; the primary habitat's crew size is not stated. Six also matches the NHV guideline's assumption."
+    ask_team: true
+  node:
+    value: {diameter: 5.0}
+    unit: m
+    kind: assumed
+    why: "Concept: one spherical hub node joining the modules (ISS-like topology). Diameter is a study variable."
+    ask_team: true
+  modules:
+    value:
+      - {name: crew, diameter: 4.2, length: 9.0, functions: ["crew quarters x6", "kitchen", "bathroom", "medical bay"]}
+      - {name: lab, diameter: 4.2, length: 8.0, functions: ["laboratory", "FMBR production", "Mycoponics"]}
+      - {name: food, diameter: 4.2, length: 9.0, functions: ["autonomous hydroponic towers"]}
+      - {name: eclss, diameter: 4.2, length: 8.0, functions: ["waste-management bioreactors (MABR, APMBR, SAMBR)", "RO system", "HVAC", "control systems", "laundry", "power & batteries"]}
+    unit: m
+    kind: assumed
+    why: "Concept: four radial cylinders on the node, with the systems of the paper's Fig 1 grouped by function. Diameters and lengths are study variables (a ~4 m class is ISS-like and road-transportable as an oversize load; not checked against any transport rule)."
+    ask_team: true
+  airlock:
+    value: {diameter: 2.4, length: 3.0}
+    unit: m
+    kind: assumed
+    why: "Concept airlock cylinder on the node (Fig 1: vacuum pump, air pump, pressure sensors). Excluded from NHV, as in the NHV guideline."
+    ask_team: true
+  wall_thickness:
+    value: 0.10
+    unit: m
+    kind: assumed
+    why: "Shell + insulation + liner allowance between outer and inner diameter. Material not selected."
+    ask_team: true
+  habitable_fraction:
+    value: [0.40, 0.50, 0.60]
+    unit: '-'
+    kind: assumed
+    why: "NHV is pressurised volume minus equipment, stowage and systems; it can only be measured from a real internal layout. A low / central / high fraction of the internal pressurised volume (airlock excluded) brackets it."
+    ask_team: true
+  hatch_tunnel:
+    value: {diameter: 1.3, length: 0.6}
+    unit: m
+    kind: assumed
+    why: "Short hatch tunnel (berthing length) between the node and each module. Modules start beyond the node surface, so perpendicular modules clash only if a module is wider than the node; the generator checks for clashes."
+    ask_team: true
+  deck_below_axis:
+    value: 0.6
+    unit: m
+    kind: assumed
+    why: "Floor deck height in the horizontal cylinders, below the module axis (gives ~2.6 m headroom on the centre line of a 4.0 m inner diameter)."
+    ask_team: true

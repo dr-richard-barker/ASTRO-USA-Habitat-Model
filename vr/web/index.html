@@ -29,7 +29,7 @@
 <div id="view"></div>
 <div id="panel">
   <h1>ASTRO-USA Food Production Module</h1>
-  <p>Generated from the sourced ledger (ICES-2026-251). Drag to orbit, scroll to zoom, click anything. <a id="lodlink"></a></p>
+  <p><span id="intro">Generated from the sourced ledger (ICES-2026-251). Drag to orbit, scroll to zoom, click anything.</span> <a id="lodlink"></a></p>
   <div id="layers"></div>
   <div id="pick" aria-live="polite"></div>
 </div>
@@ -44,7 +44,8 @@ import { initCollab } from "./collab.js";
 const params = new URLSearchParams(location.search);
 const LOD = ["1", "2"].includes(params.get("lod")) ? params.get("lod") : "2";
 const LAYER_NAMES = { structure:"Container & structure", plants:"Plants & growing systems", water:"Water", power:"Power & electrical",
-  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls", payloads:"Biomanufacturing payloads (envelopes)", site:"Mini-Hab site (concept)" };
+  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls", payloads:"Biomanufacturing payloads (envelopes)", site:"Mini-Hab site (concept)",
+  primary:"Primary habitat (concept)" };
 
 const el = document.getElementById("view");
 const renderer = new THREE.WebGLRenderer({ antialias:true });
@@ -106,7 +107,13 @@ const meta = o => {
   const m = p ? { ...p.userData } : {};
   return port ? { ...m, port: port.port, port_kind: port.port_kind, flow_L_min: port.flow_L_min, co2_g_day: port.co2_g_day } : m;
 };
-new GLTFLoader().load(`assets/fpm_vr_lod${LOD}.glb`, gltf => {
+const SCENE = params.get("scene") === "primary" ? "primary" : "fpm";
+if (SCENE === "primary") {
+  document.querySelector("#panel h1").textContent = "ASTRO-USA primary habitat — CONCEPT";
+  document.getElementById("intro").textContent = "Design-study geometry from ledger/primary.yaml (not the team's design): " +
+    "spherical node, four modules, airlock. Volumes and the NASA NHV check are in results/primary_concept.md.";
+}
+new GLTFLoader().load(SCENE === "primary" ? "assets/primary_concept_lod2.glb" : `assets/fpm_vr_lod${LOD}.glb`, gltf => {
   const root = gltf.scene;
   root.traverse(o => {
     if (!o.isMesh) return;
@@ -125,6 +132,12 @@ new GLTFLoader().load(`assets/fpm_vr_lod${LOD}.glb`, gltf => {
     cb.type = "checkbox"; cb.checked = true; cb.onchange = () => groups[name].forEach(m => m.visible = cb.checked);
     const n = new Set(groups[name].map(m => m.userData.meta.element)).size;
     lab.append(cb, ` ${LAYER_NAMES[name] || name} (${n})`); lay.append(lab);
+  }
+  if (SCENE === "primary") {     // FPM-only controls do not apply to the concept scene
+    window.__habitat = { lod: LOD, scene: SCENE, elements: [...new Set(Object.values(groups).flat().map(m => m.userData.meta.element))].sort(),
+                         size: s.toArray(), overlays: [], ports: [] };
+    document.getElementById("lodlink").hidden = true;
+    return;
   }
   const roofLab = document.createElement("label"), roofCb = document.createElement("input");
   roofCb.type = "checkbox"; roofCb.checked = true;

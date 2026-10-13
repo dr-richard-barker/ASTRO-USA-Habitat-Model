@@ -158,9 +158,14 @@ def main(argv=None):
     ap.add_argument("--lods", type=int, nargs="+", default=[0, 1, 2])
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--site", action="store_true", help="build the Mini-Hab site overlay instead of the FPM")
+    ap.add_argument("--primary", action="store_true", help="build the primary-habitat concept scene")
     a = ap.parse_args(argv)
     out = OUT / "vr"
-    if a.site:
+    if a.primary:
+        from ..primary import main as write_primary
+        write_primary()
+        spec_file = out / "primary_spec.json"
+    elif a.site:
         from .site_spec import main as write_site
         write_site()
         spec_file = out / "site_spec.json"
@@ -181,7 +186,7 @@ def main(argv=None):
         report["lods"].append(g)
         print(f"LOD{lod}: {g['triangles']:,} tris, {g['mesh_nodes']} mesh nodes, {g['bytes'] / 1e6:.2f} MB, "
               f"extent {np.round(g['extent_m'], 3).tolist()} m -> {'PASS' if g['pass'] else 'FAIL ' + str(g['gates'])}")
-    if 0 in a.lods and not a.site:     # engine pack: USDZ for visionOS / Omniverse, checked with Apple's usdchecker
+    if 0 in a.lods and not (a.site or a.primary):     # engine pack: USDZ for visionOS / Omniverse, checked with Apple's usdchecker
         usdz = out / "fpm_vr_lod0.usdz"
         subprocess.run(["/usr/bin/usdzip", str(usdz), str(out / "fpm_vr_lod0.usdc")], capture_output=True, cwd=out)
         chk = subprocess.run(["/usr/bin/usdchecker", str(usdz)], capture_output=True, text=True)
@@ -190,7 +195,7 @@ def main(argv=None):
         print(f"USDZ: usdchecker {'Success' if ok else 'FAILED'}")
         if not ok:
             raise SystemExit(1)
-    (out / ("SITE_QA.json" if a.site else "VR_QA.json")).write_text(json.dumps(report, indent=1))
+    (out / ("PRIMARY_QA.json" if a.primary else "SITE_QA.json" if a.site else "VR_QA.json")).write_text(json.dumps(report, indent=1))
     if not all(g["pass"] for g in report["lods"]):
         raise SystemExit(1)
 

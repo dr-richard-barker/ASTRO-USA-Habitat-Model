@@ -83,6 +83,7 @@ M = {
     "suit": mat("crew_suit", (0.20, 0.35, 0.60), 0.7),
     "skin": mat("crew_head", (0.80, 0.65, 0.55), 0.6),
     "unit": mat("hvac_white", (0.94, 0.95, 0.96), 0.4),
+    "hull": mat("module_hull", (0.55, 0.62, 0.72), 0.35, 0.6, alpha=0.6),
 }
 
 # --- primitives -------------------------------------------------------------------------------------
@@ -577,7 +578,64 @@ def build_trailer(e, g):
         M["cabinet"], g)
 
 
-BUILD = {"concept_box": build_concept_box, "trailer": build_trailer, "payload_envelope": build_payload_envelope, "shell": build_shell, "floor": build_floor, "partition": build_partition, "grille": build_grille,
+def _ring(c, ax, r, segs):
+    t = Vector((1, 0, 0)) if abs(ax.x) < 0.9 else Vector((0, 1, 0))
+    u = ax.cross(t).normalized(); w = ax.cross(u)
+    return [c + r * (math.cos(2 * math.pi * i / segs) * u + math.sin(2 * math.pi * i / segs) * w) for i in range(segs)]
+
+
+def build_sphere_shell(e, g):
+    """Spherical node at r_out with holes where hatch tunnels attach (walk-through in VR)."""
+    p = e["params"]; c = Vector(p["center"]); R = p["r_out"]
+    nlat, nlon = {0: 24, 1: 16, 2: 12}[LOD], {0: 48, 1: 32, 2: 24}[LOD]
+    v = [c + R * Vector((math.sin(math.pi * i / nlat) * math.cos(2 * math.pi * j / nlon),
+                         math.sin(math.pi * i / nlat) * math.sin(2 * math.pi * j / nlon),
+                         math.cos(math.pi * i / nlat))) for i in range(nlat + 1) for j in range(nlon)]
+    f = []
+    for i in range(nlat):
+        for j in range(nlon):
+            a, b = i * nlon + j, i * nlon + (j + 1) % nlon
+            quad = (a, b, b + nlon, a + nlon)
+            cen = sum((v[k] for k in quad), Vector()) / 4 - c
+            if any(cen.normalized().dot(Vector(pt["dir"])) > math.cos(math.asin(min(0.99, pt["radius"] / R)))
+                   for pt in p["ports"]):
+                continue                                      # hatch opening
+            f.append(quad)
+    new_obj(e["id"] + "_hull", mesh_from(e["id"] + "_hull", v, f), M["hull"], g)
+
+
+def build_tube(e, g):
+    """Cylindrical module / tunnel / airlock: open side wall + end caps (start cap opened to the hatch radius)."""
+    p = e["params"]; a, b = Vector(p["p0"]), Vector(p["p1"]); ax = (b - a).normalized(); r = p["r_out"]
+    segs = {0: 48, 1: 32, 2: 20}[LOD]
+    ra, rb = _ring(a, ax, r, segs), _ring(b, ax, r, segs)
+    v = ra + rb
+    f = [(i, (i + 1) % segs, segs + (i + 1) % segs, segs + i) for i in range(segs)]
+    new_obj(e["id"] + "_hull", mesh_from(e["id"] + "_hull", v, f), M["hull"], g)
+    for cap, ctr, ring in (("cap_start", a, ra), ("cap_end", b, rb)):
+        if not p.get(cap):
+            continue
+        hole = p.get("hatch_r", 0.0) if cap == "cap_start" else 0.0
+        inner = _ring(ctr, ax, hole, segs) if hole else [ctr]
+        vv = ring + inner
+        ff = ([(i, (i + 1) % segs, segs + (i + 1) % segs, segs + i) for i in range(segs)] if hole
+              else [(i, (i + 1) % segs, segs) for i in range(segs)])
+        new_obj(e["id"] + "_" + cap, mesh_from(e["id"] + "_" + cap, vv, ff), M["hull"], g)
+    if "module" in e["id"]:                                   # two cradles under each module (illustrative)
+        for frac in (0.2, 0.8):
+            pc = a + (b - a) * frac
+            w = r * 0.7
+            perp = Vector((-ax.y, ax.x, 0)).normalized()
+            lo_ = pc - perp * w - ax * 0.15; hi_ = pc + perp * w + ax * 0.15
+            box("cradle", (min(lo_.x, hi_.x), min(lo_.y, hi_.y), 0.0),
+                (max(lo_.x, hi_.x), max(lo_.y, hi_.y), pc.z - r + 0.05), M["cabinet"], g)
+
+
+def build_box(e, g):
+    box(e["id"] + "_body", e["lo"], e["hi"], M["plywood"] if e["params"].get("mat") == "deck" else M["unit"], g)
+
+
+BUILD = {"sphere_shell": build_sphere_shell, "tube": build_tube, "box": build_box, "concept_box": build_concept_box, "trailer": build_trailer, "payload_envelope": build_payload_envelope, "shell": build_shell, "floor": build_floor, "partition": build_partition, "grille": build_grille,
          "box_unit": build_box_unit, "nft_wall": build_nft_wall, "glass_enclosure": build_glass_enclosure,
          "shelf_rack": build_shelf_rack, "kratky": build_kratky, "dutch_bucket": build_dutch,
          "battery_cabinet": build_battery_cabinet, "workbench": build_workbench, "receptacle": build_receptacle,
@@ -629,6 +687,16 @@ def render(name, loc, target, lens=18, res=(1600, 900)):
     scene.render.filepath = str(OUT / f"render_lod{LOD}_{name}.png")
     bpy.ops.render.render(write_still=True)
 
+
+if RENDER and spec.get("name") == "primary_concept":
+    scene.render.engine = "BLENDER_EEVEE"
+    scene.view_settings.view_transform = "AgX"
+    world = bpy.data.worlds.new("sky"); scene.world = world; world.use_nodes = True
+    world.node_tree.nodes["Background"].inputs[0].default_value = (0.75, 0.82, 0.92, 1)
+    sun = bpy.data.lights.new("sun", "SUN"); sun.energy = 3.5
+    so = bpy.data.objects.new("sun", sun); scene.collection.objects.link(so); so.rotation_euler = (0.7, 0.3, 0.9)
+    render("primary_overview", (16, -22, 17), (0, 0, 1.5), lens=24)
+    RENDER = False
 
 if RENDER and spec.get("name") == "fpm_site":
     scene.render.engine = "BLENDER_EEVEE"
