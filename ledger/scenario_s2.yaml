@@ -1,0 +1,15 @@
+# S2 peak occupancy: all six crew in the FPM at once (e.g. a harvest or a tour). Overrides M0's crew only; every other
+# operating value is inherited from scenario_m0 (registry.scenario_path). Declared assumptions throughout.
+scenario_s2:
+  crew_on_duty:
+    value: 6
+    unit: '-'
+    kind: assumed
+    why: "Peak occupancy: the paper sizes the Mini-Hab food supply for a crew of six; S2 puts all six in the FPM at once as an upper bound on crew heat, CO2 and water vapour."
+    ask_team: true
+  crew_x:
+    value: [40.0, 110.0, 180.0, 250.0, 330.0, 390.0]
+    unit: in
+    kind: assumed
+    why: "Six standing crewmembers spread along the aisle (Fig 2 frame), one every ~60-80 in, clear of the attic partition."
+    ask_team: true

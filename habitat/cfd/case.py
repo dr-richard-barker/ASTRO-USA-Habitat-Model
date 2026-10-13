@@ -164,7 +164,8 @@ def build(mesh: str = "coarse", nprocs: int = 4, tag: str = "", scenario: str = 
     lo, hi = np.array(dom.lo) / 1000, np.array(dom.hi) / 1000
     h = MESH_H_MM[mesh] / 1000
 
-    T0 = L.num("scenario_m0.hvac.setpoint_T", "C") + 273.15
+    from ..registry import scenario_path
+    T0 = L.num(scenario_path(L, scenario, "hvac.setpoint_T"), "C") + 273.15
     sup = next(p for p in parts if p.id == "hvac_supply")
     Ts = sup.opening["supply_T_C"] + 273.15
     Q = sup.opening["flow_m3_s"]
@@ -501,7 +502,7 @@ def main(argv=None):
     ap.add_argument("--np", type=int, default=4)
     ap.add_argument("--run", action="store_true")
     ap.add_argument("--mesh-only", action="store_true")
-    ap.add_argument("--scenario", choices=["m0", "s6"], default="m0")
+    ap.add_argument("--scenario", default="m0", help="any scenario_<name> in the ledger (m0, s6, s2, s5a, ...)")
     a = ap.parse_args(argv)
     case = build(a.mesh, a.np, scenario=a.scenario)
     print(case)

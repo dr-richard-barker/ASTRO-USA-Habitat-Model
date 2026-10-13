@@ -1,0 +1,11 @@
+# S5 HVAC supply-flow screen (600 cfm). The attic unit is unknown (TEAM_INPUTS #3), so the supply flow is treated as a
+# design variable: S5a/S5b halve and double the M0 placeholder (300 cfm) with the same fixed supply temperature, so the
+# room temperature, CO2 and age of air show how sensitive they are to the unit chosen. Everything else is M0.
+scenario_s5b:
+  hvac:
+    supply_flow:
+      value: 600.0
+      unit: cfm
+      kind: assumed
+      why: "S5 sensitivity screen: twice the M0 placeholder flow (300 cfm), supply temperature unchanged."
+      ask_team: false

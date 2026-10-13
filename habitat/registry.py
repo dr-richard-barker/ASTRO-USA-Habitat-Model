@@ -52,9 +52,20 @@ def _fig2_box(L: Ledger, path: str, z0_mm: float, z1_mm: float) -> tuple[list[fl
     return lo, hi
 
 
+def scenario_path(L: Ledger, scenario: str, key: str) -> str:
+    """Ledger path of an operating-point value: the scenario's own record if it has one, else the M0 baseline's.
+    A scenario ledger (scenario_<name>.yaml) therefore lists only what it changes."""
+    own = f"scenario_{scenario}.{key}"
+    return own if own in L.records else f"scenario_m0.{key}"
+
+
 def build(L: Ledger | None = None, scenario: str = "m0") -> tuple[Ledger, list[Part]]:
-    """scenario 'm0': smoke test (payloads unpowered, bay a solid block); 's6': payload siting (open bay)."""
+    """scenario 'm0': smoke test (payloads unpowered, bay a solid block); 's6': payload siting (open bay);
+    any other scenario_<name> ledger overrides M0 values key by key (scenario_path)."""
     L = L or Ledger()
+    if not any(r.startswith(f"scenario_{scenario}.") for r in L.records):
+        raise KeyError(f"no ledger records for scenario '{scenario}'")
+    sp = lambda key: scenario_path(L, scenario, key)  # noqa: E731
     parts: list[Part] = []
     Lx = to_mm(L.num("fpm.footprint.length", "in"), "in")
     Ly = to_mm(L.num("fpm.footprint.width", "in"), "in")
@@ -104,7 +115,7 @@ def build(L: Ledger | None = None, scenario: str = "m0") -> tuple[Ledger, list[P
     heat = {"bioreactor_rack": L.num("payloads.bioreactor_rack.heat", "W"),
             "photobioreactor": L.num("payloads.photobioreactor.led_power", "W"),
             "incubator": L.num("payloads.incubator.heat", "W"), \"sensor_module\": L.num("payloads.sensor_module.heat", "W")}
-    powered = bool(L.val(f"scenario_{scenario}.payloads_powered"))
+    powered = bool(L.val(sp("payloads_powered")))
     open_bay = scenario == "s6" and bool(L.val("scenario_s6.enclosure_open"))
     rot = L.val("payloads.layout.rotation_deg")
     co2_tube = L.num("payloads.bioreactor_rack.co2_per_tube", "g/day")
@@ -152,10 +163,10 @@ def build(L: Ledger | None = None, scenario: str = "m0") -> tuple[Ledger, list[P
                 key = p.id.replace("payload_", "")
                 if key in heat and heat[key]:
                     p.heat_W += heat[key]
-                    p.refs.append(f"scenario_{scenario}.payloads_powered")
+                    p.refs.append(sp("payloads_powered"))
     elif powered:   # payload heat (and vented gas) leave the closed enclosure into the room via the bay's fluid shell
         bay.heat_W += sum(heat.values())
-        bay.refs.append("scenario_m0.payloads_powered")
+        bay.refs.append(sp("payloads_powered"))
         if L.val("payloads.layout.offgas_route") == "bay":
             n_gas = sum(1 for p in parts if p.id == "payload_bioreactor_rack" for q in p.ports if q["kind"] == "gas_out")
             bay.co2_kg_s += to_kg_s(co2_tube * n_gas, "g/day")
@@ -190,8 +201,11 @@ def build(L: Ledger | None = None, scenario: str = "m0") -> tuple[Ledger, list[P
     yc = to_mm(W_in - aisle_y_fig, "in")
     bw, bd = [to_mm(v, "m") for v in L.val("crew.body_box")]
     hz = to_mm(L.num("crew.height", "m"), "m")
-    xs = L.val("scenario_m0.crew_x")
-    for k in range(int(L.num("scenario_m0.crew_on_duty", "-"))):
+    xs = L.val(sp("crew_x"))
+    n_crew = int(L.num(sp("crew_on_duty"), "-"))
+    if len(xs) < n_crew:
+        raise ValueError(f"{sp('crew_x')} gives {len(xs)} positions for {n_crew} crew")
+    for k in range(n_crew):
         xc = to_mm(xs[k], "in")
         parts.append(Part(f"crew_{k + 1}", f"Crewmember {k + 1} (standing, awake)", "crew",
                           [xc - bw / 2, yc - bd / 2, 0.0], [xc + bw / 2, yc + bd / 2, hz], "source_zone",
@@ -200,20 +214,20 @@ def build(L: Ledger | None = None, scenario: str = "m0") -> tuple[Ledger, list[P
                           co2_kg_s=to_kg_s(L.num("crew.awake.co2", "g/min"), "g/min"),
                           h2o_kg_s=to_kg_s(L.num("crew.awake.water_vapour", "g/min"), "g/min"),
                           refs=["crew.body_box", "crew.height", "crew.awake.sensible_heat", "crew.awake.co2",
-                                "crew.awake.water_vapour", "scenario_m0.crew_x", "scenario_m0.crew_on_duty"]))
+                                "crew.awake.water_vapour", sp("crew_x"), sp("crew_on_duty")]))
 
     # --- HVAC grilles on the attic partition (face x = attic start)
     for role, key in (("inlet", "supply"), ("outlet", "return")):
-        gw, gh = [to_mm(v, "in") for v in L.val(f"scenario_m0.hvac.{key}_grille")]
-        zc = to_mm(L.num(f"scenario_m0.hvac.{key}_grille_center_z", "m"), "m")
+        gw, gh = [to_mm(v, "in") for v in L.val(sp(f"hvac.{key}_grille"))]
+        zc = to_mm(L.num(sp(f"hvac.{key}_grille_center_z"), "m"), "m")
         x = attic_lo[0]
         parts.append(Part(f"hvac_{key}", f"HVAC {key} grille (attic partition)", "air",
                           [x, Ly / 2 - gw / 2, zc - gh / 2], [x, Ly / 2 + gw / 2, zc + gh / 2], "opening",
                           opening={"role": role, "face": "xmax",
-                                   "flow_m3_s": to_m3_s(L.num("scenario_m0.hvac.supply_flow", "cfm"), "cfm"),
-                                   "supply_T_C": L.num("scenario_m0.hvac.supply_T", "C")},
-                          refs=[f"scenario_m0.hvac.{key}_grille", f"scenario_m0.hvac.{key}_grille_center_z",
-                                "scenario_m0.hvac.supply_flow", "scenario_m0.hvac.supply_T"]))
+                                   "flow_m3_s": to_m3_s(L.num(sp("hvac.supply_flow"), "cfm"), "cfm"),
+                                   "supply_T_C": L.num(sp("hvac.supply_T"), "C")},
+                          refs=[sp(f"hvac.{key}_grille"), sp(f"hvac.{key}_grille_center_z"),
+                                sp("hvac.supply_flow"), sp("hvac.supply_T")]))
     return L, parts
 
 
