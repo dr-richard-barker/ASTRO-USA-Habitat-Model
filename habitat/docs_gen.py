@@ -12,7 +12,9 @@ TEAM_EXTRA = [
     ("Fusion 360 model", "Export (STEP or F3D) of the model behind Figs 4-5; it becomes a reference overlay."),
     ("Container", "Make/model or measured interior L x W x H; door type and which end; windows, vents, penetrations."),
     ("Attic HVAC", "Make/model, capacity, airflow, supply/return grille sizes and positions, fresh-air provision."),
-    ("Envelope", "Wall/roof/floor insulation and lining build-up; infiltration; door-opening schedule."),
+    ("Envelope", "Wall/roof/floor insulation and lining build-up; infiltration (a CO₂ decay test with the door shut "
+                 "measures it; it decides how fast CO₂ builds up if the HVAC stops, results/s3_hvac_off.md); "
+                 "door-opening schedule."),
     ("Grow lights", "Model, count, wattage, mounting, photoperiod, and the canopy PPF they deliver.{light_budget}"),
     ("Hydroponics", "NFT channel type, pump flow, reservoir volume, crop list, planting schedule; Kratky and Dutch-bucket crops."),
     ("Power", "Battery chemistry/model (16 x 12 V), inverter/charge-controller model, cabinet ventilation; panel model, racking, tilt."),

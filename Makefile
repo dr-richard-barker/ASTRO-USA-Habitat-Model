@@ -12,6 +12,7 @@ post:
 	uv run python -m habitat.cfd.post runs/fpm_m0_coarse
 light:
 	uv run python -m habitat.light_budget
+	uv run python -m habitat.s3_hvac_off
 docs: light
 	uv run python -m habitat.docs_gen
 test:

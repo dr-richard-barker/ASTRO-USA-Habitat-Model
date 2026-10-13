@@ -1,0 +1,30 @@
+# S3 HVAC-off (door closed): a zero-dimensional CO2 build-up model (habitat/s3_hvac_off.py), as the review-amended
+# plan set out (a multi-hour 0-D model; a short CFD transient can follow). Limits and the outdoor level are sourced;
+# infiltration is a declared sweep because the container's leakage is unknown.
+scenario_s3:
+  co2_limit_osha_pel:
+    value: 5000.0
+    unit: ppm
+    kind: specified
+    source: "OSHA 29 CFR 1910.1000 Table Z-1 (8-hour time-weighted average), eCFR versioner XML as of 2026-10-06"
+    url: https://www.ecfr.gov/current/title-29/subtitle-B/chapter-XVII/part-1910/subpart-Z/section-1910.1000
+    quote: "Carbon dioxide 124-38-9 5000 9000"
+  co2_outdoor:
+    value: 426.10
+    unit: ppm
+    kind: specified
+    source: "NOAA GML global monthly mean CO2, co2_mm_gl.txt (file created 2026-10-09), July 2026"
+    url: https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_gl.txt
+    quote: "2026       7      2026.542        426.10"
+  infiltration_ach:
+    value: [0.0, 0.1, 0.5]
+    unit: 1/h
+    kind: assumed
+    why: "Air changes per hour through the closed container's seals and penetrations: unknown, so swept from sealed (worst case) to leaky. Measure with a CO2 decay test."
+    ask_team: true
+  crew_cases:
+    value: [2, 6]
+    unit: '-'
+    kind: assumed
+    why: "The M0 working crew and the S2 peak occupancy."
+    ask_team: false
