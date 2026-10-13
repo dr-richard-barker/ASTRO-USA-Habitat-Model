@@ -553,7 +553,31 @@ def build_port_marker(owner, q, parent):
     new_obj("port_arrow", mesh_from("port_arrow", v, f), col, pg)
 
 
-BUILD = {"payload_envelope": build_payload_envelope, "shell": build_shell, "floor": build_floor, "partition": build_partition, "grille": build_grille,
+CONCEPT_MAT = {"steel": "elec", "safety": None, "white": "unit", "reactor": "hdpe_blue", "bunk": "suit", "bench": "wood"}
+
+
+def build_concept_box(e, g):
+    """Concept equipment (illustrative): a labelled box in a material by kind."""
+    key = e["params"].get("mat", "white")
+    m = M[CONCEPT_MAT[key]] if CONCEPT_MAT.get(key) else mat("safety_yellow", (0.95, 0.80, 0.10), 0.5)
+    box(e["id"] + "_body", e["lo"], e["hi"], m, g)
+
+
+def build_trailer(e, g):
+    """Trailer envelope placeholder: body on a raised chassis, wheels and a hitch (illustrative)."""
+    lo, hi = e["lo"], e["hi"]
+    deck = lo[2] + 0.6
+    box("trailer_body", (lo[0], lo[1], deck), (hi[0], hi[1], hi[2]), M["unit"], g)
+    box("trailer_chassis", (lo[0] + 0.2, lo[1] + 0.3, deck - 0.15), (hi[0] - 0.2, hi[1] - 0.3, deck), M["cabinet"], g)
+    for xw in (lo[0] + (hi[0] - lo[0]) * 0.55, lo[0] + (hi[0] - lo[0]) * 0.70):
+        for yw, side in ((lo[1] + 0.12, -1), (hi[1] - 0.12, 1)):
+            cyl("trailer_wheel", (xw, yw - side * 0.1, lo[2] + 0.36), (xw, yw + side * 0.1, lo[2] + 0.36), 0.36,
+                M["hdpe"], g)
+    box("trailer_hitch", (hi[0], (lo[1] + hi[1]) / 2 - 0.05, deck - 0.2), (hi[0] + 1.2, (lo[1] + hi[1]) / 2 + 0.05, deck - 0.1),
+        M["cabinet"], g)
+
+
+BUILD = {"concept_box": build_concept_box, "trailer": build_trailer, "payload_envelope": build_payload_envelope, "shell": build_shell, "floor": build_floor, "partition": build_partition, "grille": build_grille,
          "box_unit": build_box_unit, "nft_wall": build_nft_wall, "glass_enclosure": build_glass_enclosure,
          "shelf_rack": build_shelf_rack, "kratky": build_kratky, "dutch_bucket": build_dutch,
          "battery_cabinet": build_battery_cabinet, "workbench": build_workbench, "receptacle": build_receptacle,
@@ -584,7 +608,7 @@ stats = {"lod": LOD, "objects": sum(o.type == "MESH" for o in scene.objects),
          "unique_meshes": len({o.data.name for o in scene.objects if o.type == "MESH"}),
          "names_with_dot_suffix": [o.name for o in scene.objects if "." in o.name][:10]}
 
-base = OUT / f"fpm_vr_lod{LOD}"
+base = OUT / f"{spec.get('name', 'fpm_vr')}_lod{LOD}"
 bpy.ops.export_scene.gltf(filepath=str(base) + ".glb", export_format="GLB", export_extras=True, export_yup=True,
                           export_apply=True, export_gpu_instances=True,
                           export_meshopt_compression_enable=False)   # files are < 2 MB; keeps the QA reader and viewer decoder-free
@@ -605,6 +629,21 @@ def render(name, loc, target, lens=18, res=(1600, 900)):
     scene.render.filepath = str(OUT / f"render_lod{LOD}_{name}.png")
     bpy.ops.render.render(write_still=True)
 
+
+if RENDER and spec.get("name") == "fpm_site":
+    scene.render.engine = "BLENDER_EEVEE"
+    scene.view_settings.view_transform = "AgX"
+    world = bpy.data.worlds.new("sky"); scene.world = world; world.use_nodes = True
+    world.node_tree.nodes["Background"].inputs[0].default_value = (0.75, 0.82, 0.92, 1)
+    sun = bpy.data.lights.new("sun", "SUN"); sun.energy = 3.5
+    so = bpy.data.objects.new("sun", sun); scene.collection.objects.link(so); so.rotation_euler = (0.8, 0.2, 0.6)
+    los = [Vector(e["lo"]) for e in spec["elements"]]; his = [Vector(e["hi"]) for e in spec["elements"]]
+    c = (Vector((min(v.x for v in los), min(v.y for v in los), 0)) + Vector((max(v.x for v in his), max(v.y for v in his), 0))) / 2
+    for o in scene.objects:          # cut-away: roofs off so the concept interiors are visible
+        if o.name.startswith("roof_panel"):
+            o.hide_render = True
+    render("site_overview", (c.x - 6, c.y - 13, 11), (c.x, c.y, 0.5), lens=20)
+    RENDER = False
 
 if RENDER:
     scene.render.engine = "BLENDER_EEVEE"

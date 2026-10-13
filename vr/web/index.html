@@ -44,7 +44,7 @@ import { initCollab } from "./collab.js";
 const params = new URLSearchParams(location.search);
 const LOD = ["1", "2"].includes(params.get("lod")) ? params.get("lod") : "2";
 const LAYER_NAMES = { structure:"Container & structure", plants:"Plants & growing systems", water:"Water", power:"Power & electrical",
-  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls", payloads:"Biomanufacturing payloads (envelopes)" };
+  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls", payloads:"Biomanufacturing payloads (envelopes)", site:"Mini-Hab site (concept)" };
 
 const el = document.getElementById("view");
 const renderer = new THREE.WebGLRenderer({ antialias:true });
@@ -130,6 +130,23 @@ new GLTFLoader().load(`assets/fpm_vr_lod${LOD}.glb`, gltf => {
   roofCb.type = "checkbox"; roofCb.checked = true;
   roofCb.onchange = () => root.traverse(o => { if (o.isMesh && (/^roof_panel|^rail_top|^side_wall_ymin/.test(o.name) || o.userData.meta.element === "solar_array")) o.visible = roofCb.checked; });
   roofLab.append(roofCb, " Roof, solar & near wall (untick to see inside)"); lay.append(roofLab);
+  // Mini-Hab site overlay (Fig 10, concept level): loaded on demand
+  const siteLab = document.createElement("label"), siteCb = document.createElement("input");
+  siteCb.type = "checkbox"; let site = null;
+  siteCb.onchange = () => {
+    if (site) { site.visible = siteCb.checked; return; }
+    new GLTFLoader().load("assets/fpm_site_lod2.glb", g => {
+      site = g.scene;
+      site.traverse(o => { if (o.isMesh) { o.userData.meta = meta(o); if (o.material) o.material.side = THREE.DoubleSide; } });
+      scene.add(site);
+      const b = new THREE.Box3().setFromObject(root).union(new THREE.Box3().setFromObject(site));
+      const cc = b.getCenter(new THREE.Vector3()), ss = b.getSize(new THREE.Vector3());
+      controls.target.set(cc.x, 1.0, cc.z); camera.position.set(cc.x, cc.y + ss.x * 0.6, cc.z + ss.x * 0.7);
+      const els = new Set(); site.traverse(o => { if (o.userData?.element) els.add(o.userData.element); });
+      window.__habitat.site = [...els].sort();
+    });
+  };
+  siteLab.append(siteCb, " Mini-Hab site: Lab, Crew Quarters, BioWaTERR (concept)"); lay.append(siteLab);
   const ports = []; root.traverse(o => { if (o.userData?.port) ports.push({ port: o.userData.port, kind: o.userData.port_kind,
     element: o.userData.element, flow: o.userData.flow_L_min, co2: o.userData.co2_g_day }); });
   window.__habitat = { ports, lod: LOD, elements: [...new Set(Object.values(groups).flat().map(m => m.userData.meta.element))].sort(),
