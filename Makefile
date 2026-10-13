@@ -15,6 +15,7 @@ light:
 	uv run python -m habitat.s3_hvac_off
 docs: light
 	uv run python -m habitat.docs_gen
+	uv run python -m habitat.brief
 test:
 	uv run pytest -q
 vr:
