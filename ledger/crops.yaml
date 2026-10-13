@@ -1,0 +1,26 @@
+# Crop and lighting reference values for the light-budget check (habitat/light_budget.py). Sources read 2026-10-13.
+crops:
+  lettuce_planting_density:
+    value: 19.2
+    unit: plants/m2
+    kind: specified
+    source: "BVAD Rev2 (NASA/TP-2015-218570/REV2), Table 4-111 Nominal Temperature Regimes, Planting Densities, and Photoperiods (PDF p. 202)"
+    quote: "Lettuce 16 19.2 23 23"
+  lettuce_photoperiod:
+    value: 16.0
+    unit: h/d
+    kind: specified
+    source: "BVAD Rev2, Table 4-111 (PDF p. 202)"
+    quote: "Lettuce 16 19.2 23 23"
+  lettuce_mec_ppf_range:
+    value: [200.0, 500.0]
+    unit: umol/m2/s
+    kind: specified
+    source: "BVAD Rev2, Section 4.14.1 Modified Energy Cascade models (PDF p. 194)"
+    quote: "The PPF range for lettuce is limited to 200 to 500 μmol/m²∙s, because a light"
+  led_fixture_efficacy_best:
+    value: 3.0
+    unit: umol/J
+    kind: specified
+    source: "Kusuma P., Pattison P.M., Bugbee B. (2020) From physics to fixtures to food: current and potential LED efficacy. Horticulture Research 7:56, doi:10.1038/s41438-020-0283-7 (CrossRef-checked; text via Europe PMC PMC7105460)"
+    quote: "Now, fixture efficacies of 2.5 to 2.8 µmol J −1 for white + red fixtures and 3 µmol J −1 for blue + red fixtures have been achieved"

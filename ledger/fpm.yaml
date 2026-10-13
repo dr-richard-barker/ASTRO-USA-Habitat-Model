@@ -164,6 +164,12 @@ fpm:
       kind: specified
       source: "ICES-2026-251, Section V"
       quote: "The estimated maximum steady power draw is 450 W, with an average load of 350 W and daily energy use of approximately 8 kWh."
+    daily_energy:
+      value: 8.0
+      unit: kWh
+      kind: specified
+      source: "ICES-2026-251, Section V (stated as approximate)"
+      quote: "The estimated maximum steady power draw is 450 W, with an average load of 350 W and daily energy use of approximately 8 kWh."
     surge:
       value: 2.6
       unit: kW

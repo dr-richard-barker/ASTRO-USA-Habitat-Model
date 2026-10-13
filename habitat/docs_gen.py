@@ -13,7 +13,7 @@ TEAM_EXTRA = [
     ("Container", "Make/model or measured interior L x W x H; door type and which end; windows, vents, penetrations."),
     ("Attic HVAC", "Make/model, capacity, airflow, supply/return grille sizes and positions, fresh-air provision."),
     ("Envelope", "Wall/roof/floor insulation and lining build-up; infiltration; door-opening schedule."),
-    ("Grow lights", "Model, count, wattage, mounting, photoperiod."),
+    ("Grow lights", "Model, count, wattage, mounting, photoperiod, and the canopy PPF they deliver.{light_budget}"),
     ("Hydroponics", "NFT channel type, pump flow, reservoir volume, crop list, planting schedule; Kratky and Dutch-bucket crops."),
     ("Power", "Battery chemistry/model (16 x 12 V), inverter/charge-controller model, cabinet ventilation; panel model, racking, tilt."),
     ("Mycoponics", "Enclosure dimensions and material; planned mycoponic hardware and its loads."),
@@ -40,8 +40,20 @@ def main() -> None:
          "The model currently fills these gaps with declared assumptions (see ASSUMPTIONS.md). Replacing any of "
          "them with a measured or specified value changes the CAD, CFD and VR outputs automatically.\n\n",
          "## General questions (ordered by impact on the CFD)\n\n"]
+    lb = ""
+    lbf = ROOT / "results" / "light_budget.json"
+    if lbf.exists():                     # the number comes from habitat/light_budget.py's output, never typed in
+        import json
+        r = json.loads(lbf.read_text())
+        wall = next(a for n, a in r["areas"].items() if n.startswith("NFT wall"))
+        lo, hi = r["inputs"]["mec_ppf_range"]
+        lb = (f" Is the lighting inside the stated {r['inputs']['load_max_W']:.0f} W / {r['inputs']['daily_energy_kWh']:g} kWh "
+              f"budget? If it is, the NFT wall cannot exceed {wall['ppf_max_all_450W_to_light']:.0f} µmol/m²·s even with "
+              f"every watt going to light at the best fixture efficacy (results/light_budget.md), below the "
+              f"{lo:.0f}-{hi:.0f} µmol/m²·s range of NASA's lettuce crop model, so plant gas exchange cannot be "
+              "modelled until the lighting is known.")
     for i, (k, q) in enumerate(TEAM_EXTRA, 1):
-        t.append(f"{i}. **{k}** — {q}\n")
+        t.append(f"{i}. **{k}** — {q.replace('{light_budget}', lb)}\n")
     t.append("\n## Specific values currently assumed\n\n| Ledger path | Assumed value | Why it was assumed |\n|---|---|---|\n")
     for p, r in sorted(A.items()):
         if r["ask_team"]:
