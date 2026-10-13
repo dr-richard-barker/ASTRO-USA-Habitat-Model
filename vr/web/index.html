@@ -31,6 +31,7 @@
   <h1>ASTRO-USA Food Production Module</h1>
   <p><span id="intro">Generated from the sourced ledger (ICES-2026-251). Drag to orbit, scroll to zoom, click anything.</span> <a id="lodlink"></a></p>
   <div id="layers"></div>
+  <button id="measureBtn" type="button" aria-pressed="false" style="margin-top:8px;font:inherit;cursor:pointer">Measure</button>
   <div id="pick" aria-live="polite"></div>
 </div>
 <script type="module">
@@ -189,6 +190,30 @@ new GLTFLoader().load(SCENE === "primary" ? "assets/primary_concept_lod2.glb" : 
 const collab = initCollab({ scene, camera, renderer, ui: document.getElementById("panel"),
                             getDigest: () => window.__habitat?.digest });
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+// ---- measure tool: two clicks on any surface give the straight, horizontal and vertical distance
+const measureGroup = new THREE.Group(); scene.add(measureGroup);
+let measuring = false, mPts = [];
+const mBtn = document.getElementById("measureBtn");
+mBtn.onclick = () => {
+  measuring = !measuring; mBtn.setAttribute("aria-pressed", measuring);
+  mBtn.textContent = measuring ? "Measuring: click two points (click here to stop)" : "Measure";
+  if (!measuring) { measureGroup.clear(); mPts = []; }
+};
+function measureClick(p) {
+  if (mPts.length === 2) { measureGroup.clear(); mPts = []; }
+  mPts.push(p.clone());
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.02, 12, 8), new THREE.MeshBasicMaterial({ color: 0xff3366, depthTest: false }));
+  dot.position.copy(p); dot.renderOrder = 10; dot.raycast = () => {}; measureGroup.add(dot);
+  if (mPts.length < 2) { document.getElementById("pick").textContent = "Measure: click the second point"; return; }
+  const [a, b] = mPts, d = b.clone().sub(a);
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]),
+                              new THREE.LineBasicMaterial({ color: 0xff3366, depthTest: false }));
+  line.renderOrder = 10; line.raycast = () => {}; measureGroup.add(line);
+  const res = { distance: d.length(), horizontal: Math.hypot(d.x, d.z), vertical: Math.abs(d.y) };   // glTF: y up
+  window.__habitat.measure = res;
+  document.getElementById("pick").textContent = `Distance ${res.distance.toFixed(3)} m ` +
+    `(horizontal ${res.horizontal.toFixed(3)} m, vertical ${res.vertical.toFixed(3)} m)`;
+}
 renderer.domElement.addEventListener("click", e => {
   const r = renderer.domElement.getBoundingClientRect();
   ptr.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
@@ -197,6 +222,7 @@ renderer.domElement.addEventListener("click", e => {
   const shown = o => { for (; o; o = o.parent) if (!o.visible) return false; return true; };
   const hit = ray.intersectObjects(scene.children, true).find(h => shown(h.object));
   const m = hit ? hit.object.userData.meta || {} : null;
+  if (measuring) { if (hit) measureClick(hit.point); return; }
   if (collab.onClick(hit, m, t => { document.getElementById("pick").textContent = t; })) return;
   document.getElementById("pick").textContent = m ? `${m.label || m.element} — ${LAYER_NAMES[m.layer] || m.layer}` +
     (m.illustrative ? " (illustrative stand-in, not in the paper)" : "") +
