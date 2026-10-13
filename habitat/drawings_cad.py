@@ -106,6 +106,7 @@ def sections_sheet(L, V) -> None:
 
 def main():
     matplotlib.rcParams["svg.hashsalt"] = "astro-usa-fpm"
+    ezdxf.options.write_fixed_meta_data_for_testing = True   # no save timestamps / random GUIDs: rebuilds are identical
     L, parts = build()
     OUT.mkdir(parents=True, exist_ok=True)
     V = views(parts)
