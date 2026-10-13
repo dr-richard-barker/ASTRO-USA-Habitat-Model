@@ -1,7 +1,7 @@
 [
  {
-  "file": "fpm_m0_coarse_age_z1.10.glb",
+  "file": "fpm_m0_coarse_tr_age_z1.10.glb",
   "label": "age of air at z = 1.1 m",
-  "note": "Age of air 325-608 s (2nd-98th pct, magma: dark = fresh) \u2014 fpm_m0_coarse, iteration 500; M0 smoke test with placeholder HVAC."
+  "note": "Age of air 355-483 s (2nd-98th pct, magma: dark = fresh) \u2014 fpm_m0_coarse_tr, time mean 446-1337 s; coarse mesh, placeholder HVAC."
  }
 ]

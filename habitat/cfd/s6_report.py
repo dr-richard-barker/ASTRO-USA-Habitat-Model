@@ -118,16 +118,22 @@ def maps(case: Path, z_m: float | None = None) -> Path:
     sl = vol.slice(normal="z", origin=(0, 0, z_m)).triangulate()
     faces = sl.faces.reshape(-1, 4)[:, 1:]
     routes = list(meta["tracers"])
-    fig, axs = plt.subplots(len(routes), 1, figsize=(13, 2.4 * len(routes)))
+    keys = {r: (f"tr_{r}Mean" if f"tr_{r}Mean" in sl.point_data else f"tr_{r}") for r in routes}  # time mean if transient
+    vals = {r: np.log10(np.clip(sl.point_data[keys[r]], 1e-3, None)) for r in routes}
+    # one colour range for all routes, from the data (fixed decades washed out a field spanning < 1 decade)
+    lo, hi = np.percentile(np.concatenate(list(vals.values())), [1, 99])
+    (x0, x1), (y0, y1) = (sl.points[:, 0].min(), sl.points[:, 0].max()), (sl.points[:, 1].min(), sl.points[:, 1].max())
+    fig, axs = plt.subplots(len(routes), 1, figsize=(12, 1.1 + len(routes) * 12 * (y1 - y0) / (x1 - x0) * 1.25),
+                            layout="constrained")
     for ax, r in zip(np.atleast_1d(axs), routes):
-        key = f"tr_{r}Mean" if f"tr_{r}Mean" in sl.point_data else f"tr_{r}"   # time mean when transient
-        v = np.clip(sl.point_data[key], 1e-3, None)
-        tc = ax.tripcolor(sl.points[:, 0], sl.points[:, 1], faces, np.log10(v), shading="gouraud", cmap="viridis",
-                          vmin=-2, vmax=2)
-        ax.set_aspect("equal"); ax.set_title(f"off-gas → {r}: bioreactor CO₂ excess at z = {z_m:.2f} m (log10 ppm)",
-                                             fontsize=9)
-        fig.colorbar(tc, ax=ax, fraction=0.015, pad=0.01)
-    fig.tight_layout()
+        tc = ax.tripcolor(sl.points[:, 0], sl.points[:, 1], faces, vals[r], shading="gouraud", cmap="viridis",
+                          vmin=lo, vmax=hi)
+        ax.set_aspect("equal"); ax.set_ylabel("y (m)", fontsize=8)
+        ax.set_title(f"off-gas → {r}: bioreactor CO₂ excess over supply air at z = {z_m:.2f} m", fontsize=9)
+    np.atleast_1d(axs)[-1].set_xlabel("x from the door end (m)", fontsize=8)
+    fig.colorbar(tc, ax=axs, label="log10 ppm", shrink=0.9)
+    fig.suptitle(f"{case.name}: time-averaged plan slices; same release in each route (data: {case.name} fields)",
+                 fontsize=9)
     p = ROOT / "results" / "cfd" / f"{case.name}_siting_maps.png"
     fig.savefig(p, dpi=110)
     plt.close(fig)

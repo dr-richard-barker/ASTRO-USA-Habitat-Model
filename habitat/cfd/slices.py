@@ -56,6 +56,13 @@ def run(case: Path, decomposed: bool = False, z_m: float | None = None, y_m: flo
     meta = json.loads((case / "case_meta.json").read_text())
     vol, it = load(case, decomposed)
     vol = vol.cell_data_to_point_data()
+    tr = meta.get("transient")
+    if tr:                                   # transient run: plot the time means (fieldAverage), never a snapshot
+        for f, *_ in FIELDS:
+            if f + "Mean" not in vol.point_data:
+                raise KeyError(f"{case.name}: transient case has no {f}Mean field at t = {it:g}")
+            vol.point_data[f] = vol.point_data[f + "Mean"]
+    when = (f"time mean {tr['avg_from_s']:.0f}-{it:.0f} s" if tr else f"iteration {it:g}")
     lo, hi = np.array(vol.bounds[0::2]), np.array(vol.bounds[1::2])
     crew_z = 1.1 if z_m is None else z_m          # breathing-zone height of a seated/standing crewmember (display only)
     y_aisle = (lo[1] + hi[1]) / 2 if y_m is None else y_m
@@ -76,8 +83,10 @@ def run(case: Path, decomposed: bool = False, z_m: float | None = None, y_m: flo
                               shading="gouraud", cmap=cmap)
             ax.set_aspect("equal"); ax.set_title(f"{lab} — {title}", fontsize=9)
             ax.tick_params(labelsize=7)
+            ax.set_xlabel("x from the door end (m)", fontsize=7)
+            ax.set_ylabel("y (m)" if col == 0 else "z (m)", fontsize=7)
             fig.colorbar(tc, ax=ax, fraction=0.02, pad=0.01)
-    fig.suptitle(f"{case.name} (iteration {it:g}, ledger {meta['ledger_digest']}) — M0 smoke test: placeholder HVAC, "
+    fig.suptitle(f"{case.name} ({when}, ledger {meta['ledger_digest']}) — coarse mesh, placeholder HVAC, "
                  "adiabatic walls; not a design prediction", fontsize=10)
     fig.tight_layout()
     fig.savefig(out / f"{case.name}_fields.png", dpi=110)
@@ -92,7 +101,7 @@ def run(case: Path, decomposed: bool = False, z_m: float | None = None, y_m: flo
     m = trimesh.Trimesh(vertices=to_gltf_frame(tri.points), faces=faces, vertex_colors=rgba, process=False)
     glb = ROOT / "vr" / "web" / "assets" / f"{case.name}_age_z{crew_z:.2f}.glb"
     m.export(glb)
-    res = {"iteration": it, "slice_z_m": crew_z, "age_range_s": [float(lo_v), float(hi_v)], "glb": str(glb.relative_to(ROOT)),
+    res = {"iteration": it, "fields": "time mean" if tr else "snapshot", "slice_z_m": crew_z, "age_range_s": [float(lo_v), float(hi_v)], "glb": str(glb.relative_to(ROOT)),
            "slice_bounds_model_m": [float(x) for x in hz.bounds], "living_volume_m": [lo.tolist(), hi.tolist()]}
     # the slice must lie inside the living volume taken from the case meta (frame check)
     assert np.all(np.array(hz.bounds[0::2]) >= lo - 1e-6) and np.all(np.array(hz.bounds[1::2]) <= hi + 1e-6)
@@ -101,7 +110,7 @@ def run(case: Path, decomposed: bool = False, z_m: float | None = None, y_m: flo
     items = [o for o in (json.loads(man.read_text()) if man.exists() else []) if o["file"] != glb.name]
     items.append({"file": glb.name, "label": f"age of air at z = {crew_z:.1f} m",
                   "note": f"Age of air {lo_v:.0f}-{hi_v:.0f} s (2nd-98th pct, magma: dark = fresh) — {case.name}, "
-                          f"iteration {it:g}; M0 smoke test with placeholder HVAC."})
+                          f"{when}; coarse mesh, placeholder HVAC."})
     man.write_text(json.dumps(items, indent=1) + "\n")
     return res
 
