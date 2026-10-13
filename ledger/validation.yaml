@@ -1,0 +1,41 @@
+# Validation cases. Annex 20 values were read from the scanned report (no text layer): the quotes are transcribed
+# from the page images of Nielsen P.V. (1990) Specification of a Two-Dimensional Test Case (IEA), Gul Serie 8, R9040,
+# Aalborg University, as hosted with the Aalborg CFD benchmark (592301_2d_benchmark_test.pdf), pp. 1-2.
+validation:
+  annex20:
+    H:
+      value: 3.0
+      unit: m
+      kind: specified
+      source: "Nielsen (1990) R9040, eq. (2), page image p. 2"
+      quote: "H = 3.0 m , L = 9.0 m , h = 0.168 m and t = 0.48 m"
+    L_over_H:
+      value: 3.0
+      unit: '-'
+      kind: specified
+      source: "Nielsen (1990) R9040, eq. (1), page image p. 2"
+      quote: "L/H = 3.0 , h/H = 0.056 and t/H = 0.16"
+    h_over_H:
+      value: 0.056
+      unit: '-'
+      kind: specified
+      source: "Nielsen (1990) R9040, eq. (1), page image p. 2"
+      quote: "L/H = 3.0 , h/H = 0.056 and t/H = 0.16"
+    t_over_H:
+      value: 0.16
+      unit: '-'
+      kind: specified
+      source: "Nielsen (1990) R9040, eq. (1), page image p. 2"
+      quote: "L/H = 3.0 , h/H = 0.056 and t/H = 0.16"
+    u0:
+      value: 0.455
+      unit: m/s
+      kind: specified
+      source: "Nielsen (1990) R9040, eq. (4), page image p. 2"
+      quote: "u_o = 0,455 m/s"
+    nu:
+      value: 1.53e-5
+      unit: m2/s
+      kind: specified
+      source: "Nielsen (1990) R9040, text after eq. (4), page image p. 2"
+      quote: "for a kinematic viscosity of ν = 15,3 · 10^-6 m²/s at an inlet temperature of 20°C"

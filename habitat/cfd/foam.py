@@ -117,11 +117,16 @@ def host_lock(wait_foreign_s: float = 6 * 3600, quiet_s: float = 20.0, poll_s: f
         yield
 
 
-def run(case: Path, steps: list[str], nprocs: int = 1, timeout: float | None = None) -> None:
-    """Run utilities in the pinned container (one log per step). 'par:' prefix -> mpirun -np nprocs."""
+def run(case: Path, steps: list[str], nprocs: int = 1, timeout: float | None = None, exclusive: bool = True) -> None:
+    """Run utilities in the pinned container (one log per step). 'par:' prefix -> mpirun -np nprocs.
+    exclusive=False skips the host lock: only for single-rank verification cases of a few 10k cells (e.g. the 2-D
+    benchmark), which fit beside a running campaign; every production run keeps the lock."""
     case = case.resolve()
     root = case.parent
-    with host_lock():
+    if not exclusive and nprocs != 1:
+        raise ValueError("only single-rank runs may skip the host lock")
+    import contextlib
+    with (host_lock() if exclusive else contextlib.nullcontext()):
         for step in steps:
             par = step.startswith("par:")
             cmd = step[4:] if par else step
