@@ -527,7 +527,8 @@ def build_payload_envelope(e, g):
 
 
 PORT_COLOUR = {"gas_out": (0.85, 0.20, 0.20), "gas_in": (0.20, 0.40, 0.90), "fan_in": (0.20, 0.65, 0.60),
-               "fan_out": (0.20, 0.65, 0.60), "sample": (0.60, 0.30, 0.75)}
+               "fan_out": (0.20, 0.65, 0.60), "sample": (0.60, 0.30, 0.75),
+               "sample_exhaust": (0.45, 0.25, 0.55)}
 
 
 def build_port_marker(owner, q, parent):
@@ -540,8 +541,9 @@ def build_port_marker(owner, q, parent):
     pg = empty(f"{owner}_port_{q['name']}", parent, extra)
     segs = max(6, SEG // 3)
     cyl("port_stub", pos - d * 0.01, pos + d * 0.03, 0.012, col, pg, segs=segs)
-    tip_base = pos + d * (0.03 if q["kind"] != "gas_in" else 0.09)
-    sign = 1 if q["kind"] != "gas_in" else -1      # inlets: arrow points back into the port
+    inlet = q["kind"] in ("gas_in", "sample")     # inlets (incl. the sensor module's sample intake): arrow points into the port
+    tip_base = pos + d * (0.09 if inlet else 0.03)
+    sign = -1 if inlet else 1
     v, f = [], []
     a = tip_base; b = tip_base + d * 0.05 * sign
     t_ = Vector((1, 0, 0)) if abs(d.x) < 0.9 else Vector((0, 1, 0))

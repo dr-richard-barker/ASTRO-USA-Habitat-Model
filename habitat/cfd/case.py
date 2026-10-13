@@ -389,7 +389,7 @@ mergeTolerance 1e-6;
         for p in parts:
             if p.layer == "crew":
                 probes[f"{p.id}_head"] = [(p.lo[0] + p.hi[0]) / 2, (p.lo[1] + p.hi[1]) / 2, p.hi[2] - hm]
-        for pid, port in (("payload_incubator", "intake_fan"), ("payload_sensor_module", "sample_membrane")):
+        for pid, port in (("payload_incubator", "intake_fan"), ("payload_sensor_module", "sample_in")):
             q = next(q for q in P[pid].ports if q["name"] == port)
             probes[f"{pid.replace('payload_', '')}_{port}"] = [q["pos"][0], q["pos"][1], P[pid].hi[2] + 0.75 * hm]
         can = P["nft_canopy"]
