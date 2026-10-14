@@ -37,9 +37,13 @@ def _last(cols, arr, name):
 
 
 def probe_values(case: Path, field: str) -> list[float]:
-    f = sorted((case / "postProcessing" / "probes").glob(f"*/{field}"), key=lambda p: float(p.parent.name))[-1]
-    rows = np.array([[float(v) for v in ln.split()] for ln in f.read_text().splitlines()
-                     if ln.strip() and not ln.startswith("#")])
+    files = sorted((case / "postProcessing" / "probes").glob(f"*/{field}"), key=lambda p: float(p.parent.name))
+    rows = []
+    for i, f in enumerate(files):                      # stitch restarts, dropping the re-run overlap (as post._dat)
+        t_next = float(files[i + 1].parent.name) if i + 1 < len(files) else float("inf")
+        rows += [r for r in ([float(v) for v in ln.split()] for ln in f.read_text().splitlines()
+                             if ln.strip() and not ln.startswith("#")) if r[0] < t_next]
+    rows = np.array(rows)
     return [post.window_value(None, META, rows[:, 0], rows[:, k]) for k in range(1, rows.shape[1])]
 
 

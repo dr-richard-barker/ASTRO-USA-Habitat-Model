@@ -62,10 +62,14 @@ def make(steady: Path, flush: float = 3.0, avg_from: float = 1.0, nprocs: int = 
 
     cd = (case / "system" / "controlDict").read_text()
     cd = cd.replace("application buoyantSimpleFoam;", "application buoyantPimpleFoam;")
-    cd = re.sub(r"endTime \d+(\.\d+)?;", f"endTime {end:.1f};", cd)
+    # endTime must be an exact multiple of writeInterval, or the final fields (and time means) are never written:
+    # rounding both separately left S6 and the GCI xcoarse run one write short (2026-10-14)
+    wi = t_flush / 2
+    end = round(end / wi) * wi
+    cd = re.sub(r"endTime \d+(\.\d+)?;", f"endTime {end:.6f};", cd)
     cd = re.sub(r"deltaT [^;]+;", "deltaT 0.001;", cd)
     cd = re.sub(r"writeControl timeStep;\n", "writeControl adjustableRunTime;\n", cd, count=1)
-    cd = re.sub(r"writeInterval 500;", f"writeInterval {t_flush / 2:.1f};", cd)
+    cd = re.sub(r"writeInterval 500;", f"writeInterval {wi:.6f};", cd)
     cd = cd.replace("runTimeModifiable true;", "runTimeModifiable true;\nadjustTimeStep yes;\nmaxCo 3;\nmaxDeltaT 0.5;")
     fields = "(U T dCO2 dH2O AoA" + "".join(f" tr_{r}" for r in meta.get("tracers", {})) + ")"
     favg = (f"    fieldAverage\n    {{\n        type fieldAverage; libs (\"libfieldFunctionObjects.so\");\n"

@@ -19,6 +19,48 @@
     "steady": true
    },
    "wall_h": 4.77
+  },
+  "s6_ke": {
+   "case": "fpm_s6_coarse_ke_tr",
+   "pass": false,
+   "gates": {
+    "balance_bay": false,
+    "balance_photobioreactor": true,
+    "balance_nft_wall": true,
+    "general_mass": "True",
+    "general_heat_removed_W": true,
+    "general_co2_removed_mol_s": false,
+    "general_h2o_removed_mol_s": false,
+    "general_age_return_s": true,
+    "general_steady": true
+   },
+   "wall_h": 6.18
+  },
+  "s2_ke": {
+   "case": "fpm_s2_coarse_ke_tr",
+   "pass": true,
+   "gates": {
+    "mass": "True",
+    "heat_removed_W": true,
+    "co2_removed_mol_s": true,
+    "h2o_removed_mol_s": true,
+    "age_return_s": true,
+    "steady": true
+   },
+   "wall_h": 5.01
+  },
+  "s5a_ke": {
+   "case": "fpm_s5a_coarse_ke_tr",
+   "pass": false,
+   "gates": {
+    "mass": "True",
+    "heat_removed_W": false,
+    "co2_removed_mol_s": false,
+    "h2o_removed_mol_s": false,
+    "age_return_s": false,
+    "steady": false
+   },
+   "wall_h": 6.16
   }
  }
 }

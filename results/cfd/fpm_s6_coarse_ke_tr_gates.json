@@ -1,0 +1,49 @@
+{
+ "case": "fpm_s6_coarse_ke_tr",
+ "ledger_digest": "53413134410685ff",
+ "cells": 252774,
+ "mesh_volume_m3": 65.43704,
+ "got": {
+  "mass_imbalance": 1.3923132168749116e-06,
+  "heat_removed_W": 540.3868376102199,
+  "co2_removed_mol_s": 0.0005284288803473355,
+  "h2o_removed_mol_s": 0.0024882908026498127,
+  "age_return_s": 455.1281502216616
+ },
+ "want": {
+  "heat_removed_W": 536.4,
+  "co2_removed_mol_s": 0.0005226108730328245,
+  "h2o_removed_mol_s": 0.002460875593598349,
+  "age_return_s": 452.8452467854449
+ },
+ "rel_err": {
+  "heat_removed_W": 0.007432583165958122,
+  "co2_removed_mol_s": 0.011132579926528902,
+  "h2o_removed_mol_s": 0.011140428684319121,
+  "age_return_s": 0.00504124411688556
+ },
+ "steady": {
+  "time_s": 1386.35,
+  "window_s": [
+   462.17745176814344,
+   1386.35
+  ],
+  "return_T_halves_K": [
+   294.28135849605843,
+   294.2755248262355
+  ],
+  "return_dCO2_halves_ppm": [
+   89.59308623632727,
+   88.74243828658958
+  ]
+ },
+ "gates": {
+  "mass": true,
+  "heat_removed_W": true,
+  "co2_removed_mol_s": false,
+  "h2o_removed_mol_s": false,
+  "age_return_s": true,
+  "steady": true
+ },
+ "pass": false
+}

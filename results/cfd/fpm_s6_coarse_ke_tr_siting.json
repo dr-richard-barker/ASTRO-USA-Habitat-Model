@@ -1,0 +1,150 @@
+{
+ "case": "fpm_s6_coarse_ke_tr",
+ "ledger_digest": "53413134410685ff",
+ "return_ppm": {
+  "bay": 0.8108979548798843,
+  "photobioreactor": 0.808352973047211,
+  "nft_wall": 0.8062541419151346
+ },
+ "rows": {
+  "zone:nft_canopy": {
+   "bay": 0.3897941693205874,
+   "photobioreactor": 0.46653421493962594,
+   "nft_wall": 1.140956019862325,
+   "crew_dCO2": 86.08461750368193,
+   "factor_bay": 0.48069447823225353,
+   "factor_photobioreactor": 0.5771417072679939,
+   "factor_nft_wall": 1.4151319795420298
+  },
+  "zone:crew_1": {
+   "bay": 0.38889967564394207,
+   "photobioreactor": 0.4664441516426942,
+   "nft_wall": 0.7890305048305787,
+   "crew_dCO2": 126.73076252896827,
+   "factor_bay": 0.479591387921984,
+   "factor_photobioreactor": 0.5770302914633457,
+   "factor_nft_wall": 0.9786374590973961
+  },
+  "zone:crew_2": {
+   "bay": 0.7682918249414646,
+   "photobioreactor": 1.1679552910663868,
+   "nft_wall": 0.7593202035294514,
+   "crew_dCO2": 119.0919860457766,
+   "factor_bay": 0.9474580868258192,
+   "factor_photobioreactor": 1.4448580385170102,
+   "factor_nft_wall": 0.941787662294424
+  },
+  "zone:workbench_zone": {
+   "bay": 0.6960255871236944,
+   "photobioreactor": 0.7279099861918145,
+   "nft_wall": 0.7577338861521382,
+   "crew_dCO2": 85.00261660678453,
+   "factor_bay": 0.8583393051309329,
+   "factor_photobioreactor": 0.9004853207230076,
+   "factor_nft_wall": 0.9398201469728343
+  },
+  "probe:crew_1_head": {
+   "bay": 0.3899686007165904,
+   "photobioreactor": 0.46709696711220666,
+   "nft_wall": 0.9449859692138534,
+   "crew_dCO2": 150.10366411593427,
+   "factor_bay": 0.4809095871679134,
+   "factor_photobioreactor": 0.5778378786081688,
+   "factor_nft_wall": 1.1720695995051664
+  },
+  "probe:crew_2_head": {
+   "bay": 0.3008579319785308,
+   "photobioreactor": 0.3591478286345426,
+   "nft_wall": 0.46170643170710673,
+   "crew_dCO2": 53.69219002677169,
+   "factor_bay": 0.371018239925264,
+   "factor_photobioreactor": 0.44429579726870994,
+   "factor_nft_wall": 0.5726561982185828
+  },
+  "probe:incubator_intake_fan": {
+   "bay": 0.410921691388833,
+   "photobioreactor": 0.5176353343987086,
+   "nft_wall": 0.8707216172068938,
+   "crew_dCO2": 80.38307958119212,
+   "factor_bay": 0.5067489551748857,
+   "factor_photobioreactor": 0.6403580510719252,
+   "factor_nft_wall": 1.079959248505225
+  },
+  "probe:sensor_module_sample_in": {
+   "bay": 0.5053687839817596,
+   "photobioreactor": 0.548325096075133,
+   "nft_wall": 0.8751073005211741,
+   "crew_dCO2": 81.36895855180812,
+   "factor_bay": 0.6232211845405606,
+   "factor_photobioreactor": 0.678323844110002,
+   "factor_nft_wall": 1.0853988277722075
+  },
+  "probe:nft_canopy_0": {
+   "bay": 0.39469928530157683,
+   "photobioreactor": 0.47207626077202497,
+   "nft_wall": 1.1573302823714264,
+   "crew_dCO2": 82.79988460568146,
+   "factor_bay": 0.4867434711437179,
+   "factor_photobioreactor": 0.5839976798655924,
+   "factor_nft_wall": 1.435441038011121
+  },
+  "probe:nft_canopy_1": {
+   "bay": 0.38791711574332266,
+   "photobioreactor": 0.46448350793099846,
+   "nft_wall": 1.1903427235879893,
+   "crew_dCO2": 88.21879594889192,
+   "factor_bay": 0.4783796942745818,
+   "factor_photobioreactor": 0.5746048117817348,
+   "factor_nft_wall": 1.476386491188139
+  },
+  "probe:nft_canopy_2": {
+   "bay": 0.38673812312417005,
+   "photobioreactor": 0.4631271634861258,
+   "nft_wall": 1.1097497324072438,
+   "crew_dCO2": 93.45417606431141,
+   "factor_bay": 0.47692575964315553,
+   "factor_photobioreactor": 0.5729269006586277,
+   "factor_nft_wall": 1.3764267055685462
+  },
+  "probe:bay_centre": {
+   "bay": 0.44123175623296723,
+   "photobioreactor": 0.6010438953255897,
+   "nft_wall": 0.7683337019798464,
+   "crew_dCO2": 85.12501184638562,
+   "factor_bay": 0.544127351139177,
+   "factor_photobioreactor": 0.7435413926417097,
+   "factor_nft_wall": 0.9529671378242921
+  }
+ },
+ "tracer_info": {
+  "co2_per_tube_mol_s": 4.786391852454411e-07,
+  "tubes": 10,
+  "piped_to_photobioreactor": [
+   "vent_r0c4",
+   "vent_r1c4",
+   "vent_r1c3",
+   "vent_r0c3",
+   "vent_r1c2"
+  ],
+  "vented_when_piped": [
+   "vent_r0c2",
+   "vent_r1c1",
+   "vent_r0c1",
+   "vent_r1c0",
+   "vent_r0c0"
+  ],
+  "sparge_capacity_units": 5
+ },
+ "gates": {
+  "balance_bay": true,
+  "balance_photobioreactor": true,
+  "balance_nft_wall": true,
+  "general_mass": 1.0,
+  "general_heat_removed_W": true,
+  "general_co2_removed_mol_s": true,
+  "general_h2o_removed_mol_s": true,
+  "general_age_return_s": true,
+  "general_steady": true
+ },
+ "pass": true
+}

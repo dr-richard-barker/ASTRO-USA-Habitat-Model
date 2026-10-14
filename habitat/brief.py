@@ -50,6 +50,13 @@ def main() -> None:
                        f"checks), room-wide averages change by at most {dom:.0f} %, local values near the crew by up "
                        f"to {loc:.0f} %: the room-scale picture is robust, single-point values need the finer mesh "
                        "(checked with the earlier turbulence model; see the validation note).\n")
+    sc = _j("results/cfd/scenarios.json")
+    if sc and "s2" in sc.get("scenarios", {}):
+        r = sc["scenarios"]["s2"]["rows"]
+        out.append(f"- **Six crew at once.** Room CO₂ rises about {r['domain:dCO2_ppm']['scenario']:.0f} ppm above the "
+                   f"supply air (×{r['domain:dCO2_ppm']['ratio']:.1f} the two-crew case) and the room runs "
+                   f"{r['domain:T_excess_K']['scenario']:.1f} K above it (two crew: {r['domain:T_excess_K']['base']:.1f} K), "
+                   "with the placeholder HVAC.\n")
     mc = _j("results/cfd/model_compare.json")
     if mc:
         sm = mc["summary"]

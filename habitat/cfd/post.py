@@ -33,14 +33,18 @@ def _dat(case: Path, fo: str) -> tuple[list[str], np.ndarray]:
     if not files:
         raise FileNotFoundError(f"{case}/postProcessing/{fo}: no data")
     cols, rows = None, []
-    for f in files:
+    for i, f in enumerate(files):
+        # a restart re-runs the stretch after the restart time: drop the earlier run's rows from there on
+        t_next = float(files[i + 1].parent.name) if i + 1 < len(files) else float("inf")
         for ln in f.read_text().splitlines():
             if ln.startswith("#"):
                 if "Time" in ln:
                     cols = ln.lstrip("#").split()
                 continue
             if ln.strip():
-                rows.append([float(x) for x in ln.split()])
+                r = [float(x) for x in ln.split()]
+                if r[0] < t_next:
+                    rows.append(r)
     return cols, np.array(rows)
 
 
