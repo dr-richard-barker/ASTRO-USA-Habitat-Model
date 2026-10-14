@@ -50,6 +50,12 @@ def main() -> None:
                        f"checks), room-wide averages change by at most {dom:.0f} %, local values near the crew by up "
                        f"to {loc:.0f} %: the room-scale picture is robust, single-point values need the finer mesh "
                        "(checked with the earlier turbulence model; see the validation note).\n")
+    mc = _j("results/cfd/model_compare.json")
+    if mc:
+        sm = mc["summary"]
+        out.append(f"- **Turbulence model.** Re-running the baseline with the better-validated model changes room-wide "
+                   f"averages by at most {sm['domain_max_pct']:.0f} % and single points by up to "
+                   f"{sm['local_max_pct']:.0f} %: the room-scale findings stand.\n")
     a20 = _j("results/cfd/annex20.json")
     if a20:
         def rng(model):

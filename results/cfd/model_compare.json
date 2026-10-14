@@ -1,0 +1,168 @@
+{
+ "cases": {
+  "fpm_m0_coarse_tr": "kOmegaSST",
+  "fpm_m0_coarse_ke_tr": "kEpsilon"
+ },
+ "rows": {
+  "domain:T_excess_K": {
+   "kOmegaSST": 3.090975093750964,
+   "kEpsilon": 3.1079697658035546,
+   "diff": 0.01699467205259042,
+   "diff_pct": 0.5498158845391091,
+   "mesh_spread": 0.0762443423374286,
+   "model_over_mesh": 0.22289748368972
+  },
+  "domain:AoA_s": {
+   "kOmegaSST": 454.7178158501774,
+   "kEpsilon": 446.14239924233453,
+   "diff": -8.57541660784284,
+   "diff_pct": -1.8858765390156407,
+   "mesh_spread": 4.3538338063757465,
+   "model_over_mesh": 1.9696242413490876
+  },
+  "domain:dCO2_ppm": {
+   "kOmegaSST": 89.98108262617998,
+   "kEpsilon": 91.65126657908912,
+   "diff": 1.6701839529091416,
+   "diff_pct": 1.856150097513054,
+   "mesh_spread": 2.450098191516034,
+   "model_over_mesh": 0.6816804153778389
+  },
+  "occupied:U_mean_m_s": {
+   "kOmegaSST": 0.11337400956331062,
+   "kEpsilon": 0.11155580706271184,
+   "diff": -0.0018182025005987756,
+   "diff_pct": -1.603720735997654,
+   "mesh_spread": 0.004251334921194658,
+   "model_over_mesh": 0.42767801979897807
+  },
+  "crew_1:dCO2_ppm": {
+   "kOmegaSST": 131.3870975667085,
+   "kEpsilon": 135.08555475024042,
+   "diff": 3.6984571835319286,
+   "diff_pct": 2.81493179469478,
+   "mesh_spread": 16.331339664901407,
+   "model_over_mesh": 0.22646379656657864
+  },
+  "crew_1:T_excess_K": {
+   "kOmegaSST": 3.313541729474306,
+   "kEpsilon": 3.359641175892318,
+   "diff": 0.04609944641801178,
+   "diff_pct": 1.391243876844897,
+   "mesh_spread": 0.24301298648362435,
+   "model_over_mesh": 0.18969951805895868
+  },
+  "crew_2:dCO2_ppm": {
+   "kOmegaSST": 131.32155884585472,
+   "kEpsilon": 139.61067910842954,
+   "diff": 8.289120262574812,
+   "diff_pct": 6.31207878997582,
+   "mesh_spread": 7.474381260844865,
+   "model_over_mesh": 1.1090042069432584
+  },
+  "crew_2:T_excess_K": {
+   "kOmegaSST": 3.6317968453571576,
+   "kEpsilon": 3.704178937957531,
+   "diff": 0.07238209260037332,
+   "diff_pct": 1.9930105036823755,
+   "mesh_spread": 0.07739427681073785,
+   "model_over_mesh": 0.9352383093827278
+  },
+  "nft_canopy:T_excess_K": {
+   "kOmegaSST": 3.2487505598447592,
+   "kEpsilon": 3.274763001178661,
+   "diff": 0.02601244133390157,
+   "diff_pct": 0.8006906302817095,
+   "mesh_spread": 0.06302170212145253,
+   "model_over_mesh": 0.412753709567723
+  },
+  "nft_canopy:dH2O_mmol_mol": {
+   "kOmegaSST": 0.4138251971473614,
+   "kEpsilon": 0.42437409413208704,
+   "diff": 0.010548896984725664,
+   "diff_pct": 2.549119062213422,
+   "mesh_spread": 0.008808761182034053,
+   "model_over_mesh": 1.1975460302228096
+  },
+  "aisle_x2:T_excess_K": {
+   "kOmegaSST": 2.883392333984375,
+   "kEpsilon": 2.918792724609375,
+   "diff": 0.035400390625,
+   "diff_pct": 1.2277340897304276,
+   "mesh_spread": 0.0413818359375,
+   "model_over_mesh": 0.855457227138643
+  },
+  "aisle_x2:dCO2_ppm": {
+   "kOmegaSST": 96.90995025634766,
+   "kEpsilon": 100.24600982666016,
+   "diff": 3.3360595703125,
+   "diff_pct": 3.442432445262747,
+   "mesh_spread": 0.5369644165039062,
+   "model_over_mesh": 6.212813117176511
+  },
+  "aisle_x2:U_m_s": {
+   "kOmegaSST": 0.07823514193296432,
+   "kEpsilon": 0.09223663061857224,
+   "diff": 0.01400148868560791,
+   "diff_pct": 17.89667448626228,
+   "mesh_spread": 0.00011571496725082397,
+   "model_over_mesh": 120.99980683793703
+  },
+  "aisle_x5:T_excess_K": {
+   "kOmegaSST": 2.921875,
+   "kEpsilon": 3.05987548828125,
+   "diff": 0.13800048828125,
+   "diff_pct": 4.723011363636363,
+   "mesh_spread": 0.121856689453125,
+   "model_over_mesh": 1.132481843225645
+  },
+  "aisle_x5:dCO2_ppm": {
+   "kOmegaSST": 89.76748657226562,
+   "kEpsilon": 96.64714050292969,
+   "diff": 6.8796539306640625,
+   "diff_pct": 7.663859369757141,
+   "mesh_spread": 5.980216979980469,
+   "model_over_mesh": 1.1504020596066284
+  },
+  "aisle_x5:U_m_s": {
+   "kOmegaSST": 0.02970094606280327,
+   "kEpsilon": 0.03485908731818199,
+   "diff": 0.005158141255378723,
+   "diff_pct": 17.366925768868526,
+   "mesh_spread": 0.01901508867740631,
+   "model_over_mesh": 0.27126569551619373
+  },
+  "aisle_x8:T_excess_K": {
+   "kOmegaSST": 3.300994873046875,
+   "kEpsilon": 3.654449462890625,
+   "diff": 0.35345458984375,
+   "diff_pct": 10.707517080070632,
+   "mesh_spread": 0.185333251953125,
+   "model_over_mesh": 1.9071299193150009
+  },
+  "aisle_x8:dCO2_ppm": {
+   "kOmegaSST": 101.28922271728516,
+   "kEpsilon": 126.82661437988281,
+   "diff": 25.537391662597656,
+   "diff_pct": 25.21234834023429,
+   "mesh_spread": 15.159996032714844,
+   "model_over_mesh": 1.6845249568330154
+  },
+  "aisle_x8:U_m_s": {
+   "kOmegaSST": 0.06808643043041229,
+   "kEpsilon": 0.06399831920862198,
+   "diff": -0.004088111221790314,
+   "diff_pct": -6.004296591768849,
+   "mesh_spread": 0.0025296173989772797,
+   "model_over_mesh": 1.6160986335100045
+  }
+ },
+ "summary": {
+  "domain_max_pct": 1.8858765390156407,
+  "local_max_pct": 25.21234834023429,
+  "local_max_quantity": "aisle_x8:dCO2_ppm",
+  "speed_max_pct": 17.89667448626228
+ },
+ "n_model_dominates": 10,
+ "note": "model/mesh ratios are unstable where the mesh spread is near zero; read the % columns"
+}

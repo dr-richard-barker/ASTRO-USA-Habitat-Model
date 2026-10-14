@@ -38,8 +38,15 @@ def run(a: Path, b: Path) -> dict:
         rows[k] = {model[a.name]: qa[k], model[b.name]: qb[k], "diff": d,
                    "diff_pct": 100 * d / qa[k] if qa[k] else float("nan"),
                    "mesh_spread": mesh, "model_over_mesh": abs(d) / mesh if mesh else float("nan")}
-    return {"cases": {a.name: model[a.name], b.name: model[b.name]}, "rows": rows,
-            "n_model_dominates": sum(1 for r in rows.values() if r["model_over_mesh"] > 1)}
+    pct = {k: abs(r["diff_pct"]) for k, r in rows.items()}
+    scal = {k: v for k, v in pct.items() if "U_" not in k}
+    summary = {"domain_max_pct": max(v for k, v in scal.items() if k.startswith(("domain:", "occupied:"))),
+               "local_max_pct": max(v for k, v in scal.items() if not k.startswith(("domain:", "occupied:"))),
+               "local_max_quantity": max((k for k in scal if not k.startswith(("domain:", "occupied:"))), key=scal.get),
+               "speed_max_pct": max(v for k, v in pct.items() if "U_" in k)}
+    return {"cases": {a.name: model[a.name], b.name: model[b.name]}, "rows": rows, "summary": summary,
+            "n_model_dominates": sum(1 for r in rows.values() if r["model_over_mesh"] > 1),
+            "note": "model/mesh ratios are unstable where the mesh spread is near zero; read the % columns"}
 
 
 def write(res: dict) -> None:
@@ -48,7 +55,10 @@ def write(res: dict) -> None:
     lines = [f"# Baseline turbulence-model sensitivity: {ma} ({na}) vs {mb} ({nb})\n\n",
              "Same mesh, loads and averaging; time means. 'model / mesh' = |model difference| divided by the "
              "fine-vs-coarse spread of the GCI study (above 1: the model matters more than the mesh). "
-             f"{res['n_model_dominates']} of {len(res['rows'])} quantities have model / mesh above 1.\n\n",
+             f"{res['n_model_dominates']} of {len(res['rows'])} quantities have model / mesh above 1, but that ratio "
+             "is unstable where the mesh spread is near zero. In plain terms: room-wide means change by at most "
+             f"{res['summary']['domain_max_pct']:.1f} %, local values by up to {res['summary']['local_max_pct']:.0f} % "
+             f"({res['summary']['local_max_quantity']}), air speeds by up to {res['summary']['speed_max_pct']:.0f} %.\n\n",
              f"| quantity | {ma} | {mb} | difference | % | model / mesh |\n|---|---|---|---|---|---|\n"]
     for k, r in res["rows"].items():
         lines.append(f"| {k} | {r[ma]:.4g} | {r[mb]:.4g} | {r['diff']:+.3g} | {r['diff_pct']:+.1f} | "
