@@ -21,7 +21,9 @@ def times(d: Path) -> list[float]:
     return sorted(float(p.name) for p in d.iterdir() if p.is_dir() and re.fullmatch(r"\d+(\.\d+)?", p.name))
 
 
-def extend(case: Path, new_end: float) -> Path:
+def extend(case: Path, new_end: float, reset_average: bool = False) -> Path:
+    """reset_average: start a fresh averaging window at the restart (fieldAverage restartOnRestart) and move the
+    gates' window (case_meta avg_from_s) to the restart time: for runs that were still drifting when averaging began."""
     case = case.resolve()
     procs = sorted(case.glob("processor*"))
     if not procs:
@@ -39,6 +41,11 @@ def extend(case: Path, new_end: float) -> Path:
     cd = re.sub(r"\nwriteInterval [^;]+;", f"\nwriteInterval {wi:.6f};", cd, count=1)
     if "startFrom latestTime;" not in cd:
         raise ValueError(f"{case.name}: controlDict does not restart from latestTime")
+    if reset_average:
+        if "type fieldAverage;" not in cd:
+            raise ValueError(f"{case.name}: no fieldAverage function to reset")
+        if "restartOnRestart" not in cd:
+            cd = cd.replace("type fieldAverage;", "type fieldAverage; restartOnRestart true;", 1)
     (case / "system" / "controlDict").write_text(cd)
     log = case / "log.buoyantPimpleFoam"
     if log.exists():
@@ -52,9 +59,15 @@ def extend(case: Path, new_end: float) -> Path:
     except BaseException as e:  # noqa: BLE001
         (case / "STATUS").write_text(f"FAILED: extend: {type(e).__name__}\n")
         raise
+    if reset_average:            # OpenFOAM ignores unknown keys silently: prove the averaging really restarted
+        lg = (case / "log.buoyantPimpleFoam").read_text(errors="replace")
+        if "Restarting averaging" not in lg and "Starting averaging" not in lg:
+            raise RuntimeError(f"{case.name}: no 'Restarting averaging' in the solver log; the reset did not take")
     if abs(times(case)[-1] - new_end) > 1e-3:
         raise RuntimeError(f"{case.name}: last written time {times(case)[-1]} != new end {new_end}")
-    tr.setdefault("extended", []).append({"from_s": t_last, "to_s": new_end})
+    tr.setdefault("extended", []).append({"from_s": t_last, "to_s": new_end, "reset_average": reset_average})
+    if reset_average:
+        tr["avg_from_s"] = t_last
     tr["end_s"] = new_end
     (case / "case_meta.json").write_text(json.dumps(meta, indent=1, default=str))
     (case / "STATUS").write_text("DONE\n")

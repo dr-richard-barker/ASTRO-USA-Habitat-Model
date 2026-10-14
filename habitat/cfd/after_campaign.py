@@ -62,16 +62,26 @@ def main() -> int:
     def s6():
         c = RUNS / "fpm_s6_coarse_ke_tr"
         meta = json.loads((c / "case_meta.json").read_text())
-        extend(c, 5 * meta["transient"]["t_flush_s"])
+        tf = meta["transient"]["t_flush_s"]
+        extend(c, times(c)[-1] + 3 * tf, reset_average=True)     # fresh 3-flush window after the first run
         from .s6_report import maps, run as s6_run
         res = s6_run(c)
         maps(c)
         return {"pass": res["pass"], "gates": res["gates"]}
 
+    def s5a():
+        # half airflow: still warming / accumulating CO2 when averaging began (halves +0.12 K, +4 ppm; gates
+        # -1.7 % heat, -3.25 % CO2) -> 3 more flush times with a fresh averaging window
+        c = RUNS / "fpm_s5a_coarse_ke_tr"
+        tf = json.loads((c / "case_meta.json").read_text())["transient"]["t_flush_s"]
+        extend(c, times(c)[-1] + 3 * tf, reset_average=True)
+        g = post.run(c)
+        return {"pass": g["pass"], "gates": g["gates"]}
+
     def repair():
         fixed = {}
         for c in sorted(RUNS.glob("fpm_*_ke_tr")):
-            if c.name == "fpm_s6_coarse_ke_tr":
+            if c.name in ("fpm_s6_coarse_ke_tr", "fpm_s5a_coarse_ke_tr"):
                 continue
             end = short_of_end(c)
             if end:
@@ -95,6 +105,7 @@ def main() -> int:
 
     step("gci_xcoarse", gci)
     step("s6_ke_extend", s6)
+    step("s5a_ke_extend", s5a)
     step("repair_short_runs", repair)
     step("sensors", sensors_all)
     ST.write_text("DONE\n" + "\n".join(f"{k}: {v.get('error') or v.get('result')}" for k, v in log.items()) + "\n")
