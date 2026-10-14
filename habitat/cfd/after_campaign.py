@@ -4,8 +4,8 @@
 
 1. GCI xcoarse level: its last write was 1108 s, not its 1329.5 s end -> continue to the end, re-gate, recompute
    the GCI (habitat.cfd.gci_study re-uses the finished cases).
-2. S6 k-epsilon: failed only its CO2/H2O (+1.11 %) and bay-tracer balances with stationary flow -> extend from
-   3 to 5 flush times (averaging window 1 -> 5 flush times), then re-run its siting report.
+2. S6 k-epsilon: failed only its CO2/H2O (+1.11 %) and bay-tracer (+2.22 %) balances with stationary flow -> extend from
+   3 to 5 flush times (the averaging window, which starts at 1 flush time, grows from 2 to 4 flush times), then re-run its siting report.
 3. Any campaign case whose last write fell short of its end (the same defect) -> continue to the end, re-gate.
 4. Sensor ranking over every passing k-epsilon case.
 Waits for the campaign to finish; never runs alongside it (foam.run holds the host lock as well).
