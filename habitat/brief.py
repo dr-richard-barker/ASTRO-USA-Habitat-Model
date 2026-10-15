@@ -59,6 +59,12 @@ def main() -> None:
                    f"supply air (×{r['domain:dCO2_ppm']['ratio']:.1f} the two-crew case) and the room runs "
                    f"{r['domain:T_excess_K']['scenario']:.1f} K above it (two crew: {r['domain:T_excess_K']['base']:.1f} K), "
                    "with the placeholder HVAC.\n")
+    if sc and "s5a" in sc.get("scenarios", {}):
+        r = sc["scenarios"]["s5a"]["rows"]
+        out.append(f"- **Half the airflow.** The room's temperature rise grows ×{r['domain:T_excess_K']['ratio']:.2f}, CO₂ "
+                   f"×{r['domain:dCO2_ppm']['ratio']:.2f} and the age of air ×{r['domain:AoA_s']['ratio']:.2f} (perfect "
+                   "mixing would give ×2): mixing gets worse at low flow, so the HVAC unit's airflow matters. (Double "
+                   "airflow did not settle within its run and is not reported.)\n")
     mc = _j("results/cfd/model_compare.json")
     if mc:
         sm = mc["summary"]

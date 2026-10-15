@@ -78,6 +78,22 @@ def main() -> None:
     if nav:
         m.update({"AisleMin": f"{nav['min_clear_aisle_m']:.2f}", "WalkArea": f"{nav['walkable_area_m2']:.1f}",
                   "FloorArea": f"{nav['floor_area_m2']:.1f}"})
+    sc = _j("results/cfd/scenarios.json")
+    if sc:
+        for key, tag in (("s2", "Stwo"), ("s5a", "Sfivea")):
+            if key in sc["scenarios"]:
+                r = sc["scenarios"][key]["rows"]
+                m[f"{tag}TRatio"] = f"{r['domain:T_excess_K']['ratio']:.2f}"
+                m[f"{tag}COTwoRatio"] = f"{r['domain:dCO2_ppm']['ratio']:.2f}"
+                m[f"{tag}AgeRatio"] = f"{r['domain:AoA_s']['ratio']:.2f}"
+                m[f"{tag}COTwo"] = f"{r['domain:dCO2_ppm']['scenario']:.0f}"
+    sp = _j("results/cfd/sensor_placement.json")
+    if sp and sp.get("ranked"):
+        best = sp["ranked"][0]
+        m.update({"SensorRuns": len(sp["cases"]), "SensorT": f"{best['worst_T']:.2f}",
+                  "SensorCOTwo": f"{best['worst_dCO2']:.1f}", "SensorZ": f"{best['z_m']:.1f}",
+                  "SensorWhere": ("the attic partition" if "attic" in best["wall"] else "a long wall"),
+                  "SensorClear": f"{best['clearance_m']:.1f}"})
     mc = _j("results/cfd/model_compare.json")
     if mc:
         m["ModelDomainMax"] = f"{mc['summary']['domain_max_pct']:.1f}"
