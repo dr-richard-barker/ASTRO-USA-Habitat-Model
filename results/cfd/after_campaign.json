@@ -1,0 +1,10 @@
+{
+ "gci_xcoarse": {
+  "result": {
+   "xcoarse_pass": true,
+   "gci_rc": 0,
+   "tail": "|\n| aisle_x5:dCO2_ppm | 91.4 | 89.77 | 85.56 | 2.82 | 2.13 | monotonic |\n| aisle_x5:U_m_s | 0.03799 | 0.0297 | 0.01624 | 1.17 | 78.81 | monotonic |\n| aisle_x8:T_excess_K | 3.475 | 3.301 | 3.298 | 19.61 | 0.04 | monotonic |\n| aisle_x8:dCO2_ppm | 114.5 | 101.3 | 99.31 | 9.17 | 1.54 | monotonic |\n| aisle_x8:U_m_s | 0.0596 | 0.06809 | 0.06274 | 2.04 | 26.17 | oscillatory |\n\nAll mesh gates pass: True\n\n"
+  },
+  "wall_h": 0.12
+ }
+}

@@ -10,24 +10,24 @@ Ladder shifted coarser by decision (57 / 80 / 113 mm); the 'fine' level is the 5
 
 | Quantity | 57 mm | 80 mm | 113 mm | p | GCI_fine % | convergence |
 |---|---|---|---|---|---|---|
-| domain:T_excess_K | 3.119 | 3.091 | 3.043 | 1.29 | 2.94 | monotonic |
-| domain:AoA_s | 451.9 | 454.7 | 447.6 | 3.30 | 0.58 | oscillatory |
-| domain:dCO2_ppm | 90.32 | 89.98 | 87.87 | 5.93 | 0.13 | monotonic |
-| occupied:U_mean_m_s | 0.1082 | 0.1134 | 0.1125 | 8.07 | 0.87 | oscillatory |
-| crew_1:dCO2_ppm | 141.9 | 131.4 | 125.6 | 3.33 | 6.98 | monotonic |
-| crew_1:T_excess_K | 3.458 | 3.314 | 3.215 | 2.32 | 6.46 | monotonic |
-| crew_2:dCO2_ppm | 144 | 131.3 | 136.5 | 4.01 | 6.19 | oscillatory |
-| crew_2:T_excess_K | 3.753 | 3.632 | 3.676 | 4.60 | 1.81 | oscillatory |
-| nft_canopy:T_excess_K | 3.274 | 3.249 | 3.211 | 0.89 | 3.79 | monotonic |
-| nft_canopy:dH2O_mmol_mol | 0.414 | 0.4138 | 0.4052 | 12.25 | 0.00 | monotonic |
-| aisle_x2:T_excess_K | 2.917 | 2.883 | 2.876 | 7.30 | 0.27 | monotonic |
+| domain:T_excess_K | 3.119 | 3.091 | 3.052 | 0.51 | 8.23 | monotonic |
+| domain:AoA_s | 451.9 | 454.7 | 448.1 | 3.04 | 0.66 | oscillatory |
+| domain:dCO2_ppm | 90.32 | 89.98 | 87.99 | 5.73 | 0.14 | monotonic |
+| occupied:U_mean_m_s | 0.1082 | 0.1134 | 0.1121 | 6.39 | 1.46 | oscillatory |
+| crew_1:dCO2_ppm | 141.9 | 131.4 | 126 | 3.64 | 6.08 | monotonic |
+| crew_1:T_excess_K | 3.458 | 3.314 | 3.228 | 2.99 | 4.57 | monotonic |
+| crew_2:dCO2_ppm | 144 | 131.3 | 136.6 | 3.95 | 6.34 | oscillatory |
+| crew_2:T_excess_K | 3.753 | 3.632 | 3.682 | 3.96 | 2.32 | oscillatory |
+| nft_canopy:T_excess_K | 3.274 | 3.249 | 3.219 | 0.03 | 114.39 | monotonic |
+| nft_canopy:dH2O_mmol_mol | 0.414 | 0.4138 | 0.4055 | 12.13 | 0.00 | monotonic |
+| aisle_x2:T_excess_K | 2.917 | 2.883 | 2.883 | 33.28 | 0.00 | monotonic |
 | aisle_x2:dCO2_ppm | 97.22 | 96.91 | 97.76 | 3.49 | 0.28 | oscillatory |
-| aisle_x2:U_m_s | 0.08323 | 0.07824 | 0.08311 | 0.10 | 288.01 | oscillatory |
-| aisle_x5:T_excess_K | 2.964 | 2.922 | 2.842 | 1.78 | 3.07 | monotonic |
-| aisle_x5:dCO2_ppm | 91.4 | 89.77 | 85.42 | 2.93 | 2.01 | monotonic |
-| aisle_x5:U_m_s | 0.03799 | 0.0297 | 0.01898 | 0.35 | 291.92 | monotonic |
-| aisle_x8:T_excess_K | 3.475 | 3.301 | 3.29 | 13.05 | 0.23 | monotonic |
-| aisle_x8:dCO2_ppm | 114.5 | 101.3 | 99.32 | 9.20 | 1.53 | monotonic |
-| aisle_x8:U_m_s | 0.0596 | 0.06809 | 0.06213 | 1.55 | 36.72 | oscillatory |
+| aisle_x2:U_m_s | 0.08323 | 0.07824 | 0.084 | 0.51 | 53.54 | oscillatory |
+| aisle_x5:T_excess_K | 2.964 | 2.922 | 2.856 | 1.08 | 5.56 | monotonic |
+| aisle_x5:dCO2_ppm | 91.4 | 89.77 | 85.56 | 2.82 | 2.13 | monotonic |
+| aisle_x5:U_m_s | 0.03799 | 0.0297 | 0.01624 | 1.17 | 78.81 | monotonic |
+| aisle_x8:T_excess_K | 3.475 | 3.301 | 3.298 | 19.61 | 0.04 | monotonic |
+| aisle_x8:dCO2_ppm | 114.5 | 101.3 | 99.31 | 9.17 | 1.54 | monotonic |
+| aisle_x8:U_m_s | 0.0596 | 0.06809 | 0.06274 | 2.04 | 26.17 | oscillatory |
 
 All mesh gates pass: True

@@ -48,7 +48,8 @@ def main() -> None:
         m.update({"GciHFine": f"{hs[0]:.1f}", "GciHMed": f"{hs[1]:.1f}", "GciHCoarse": f"{hs[2]:.1f}",
                   "GciDomainMax": f"{max(v for k, v in sp.items() if k.startswith('domain:')):.1f}",
                   "GciLocalMax": f"{max(v for k, v in sp.items() if not k.startswith('domain:')):.0f}",
-                  "GciRoomT": f"{gci['gci']['domain:T_excess_K']['gci_fine_pct']:.1f}"})
+                  "GciRoomT": f"{gci['gci']['domain:T_excess_K']['gci_fine_pct']:.1f}",
+                  "GciRoomP": f"{gci['gci']['domain:T_excess_K']['p']:.2f}"})
     a20 = _j("results/cfd/annex20.json")
     if a20:
         def rng(model):
