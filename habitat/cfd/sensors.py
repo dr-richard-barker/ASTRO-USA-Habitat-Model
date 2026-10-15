@@ -205,7 +205,22 @@ def viewer_overlay(res: dict, n: int = 5) -> Path:
     return glb
 
 
+def passing_ke_cases() -> list[Path]:
+    """Every k-epsilon transient case that passed its gates (and its siting gates, for S6)."""
+    from .. import RUNS
+    cases = []
+    for c in sorted(RUNS.glob("fpm_*_ke_tr")):
+        g, sit = OUT / f"{c.name}_gates.json", OUT / f"{c.name}_siting.json"
+        ok = g.exists() and json.loads(g.read_text()).get("pass")
+        if sit.exists():
+            ok = ok and json.loads(sit.read_text()).get("pass")
+        if ok:
+            cases.append(c)
+    return cases
+
+
 if __name__ == "__main__":
-    r = score([Path(a) for a in sys.argv[1:]])
+    args = sys.argv[1:]
+    r = score(passing_ke_cases() if args == ["--passing-ke"] else [Path(a) for a in args])
     write(r)
     print((OUT / "sensor_placement.md").read_text())

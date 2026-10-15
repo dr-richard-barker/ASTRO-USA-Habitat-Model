@@ -21,7 +21,9 @@ def _j(rel: str):
 def main() -> None:
     L = Ledger()
     m0 = _j("results/cfd/fpm_m0_coarse_tr_gates.json")
-    s6 = _j("results/cfd/fpm_s6_coarse_tr_siting.json")
+    s6 = _j("results/cfd/fpm_s6_coarse_ke_tr_siting.json")       # k-epsilon run once it passes, else kOmegaSST
+    if not (s6 and s6.get("pass")):
+        s6 = _j("results/cfd/fpm_s6_coarse_tr_siting.json")
     lb = _j("results/light_budget.json")
     s3 = _j("results/s3_hvac_off.json")
     sp = _j("results/cfd/sensor_placement.json")

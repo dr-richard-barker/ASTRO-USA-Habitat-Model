@@ -72,3 +72,33 @@ def extend(case: Path, new_end: float, reset_average: bool = False) -> Path:
     (case / "case_meta.json").write_text(json.dumps(meta, indent=1, default=str))
     (case / "STATUS").write_text("DONE\n")
     return case
+
+
+def main(argv=None) -> int:
+    """CLI: optionally wait for a queue's STATUS to leave RUNNING, then extend a case by N flush times and re-gate.
+
+        python -m habitat.cfd.extend runs/fpm_s5b_coarse_ke_tr --flush 3 --reset --wait results/cfd/after_campaign.STATUS
+    """
+    import argparse
+    import time
+    from . import post
+    from .campaign import alive
+    ap = argparse.ArgumentParser()
+    ap.add_argument("case")
+    ap.add_argument("--flush", type=float, default=3.0, help="flush times to add")
+    ap.add_argument("--reset", action="store_true", help="fresh averaging window from the restart")
+    ap.add_argument("--wait", help="STATUS file of a queue to wait for first")
+    a = ap.parse_args(argv)
+    if a.wait:
+        while alive(Path(a.wait)):
+            time.sleep(120)
+    case = Path(a.case)
+    tf = json.loads((case / "case_meta.json").read_text())["transient"]["t_flush_s"]
+    extend(case, times(case)[-1] + a.flush * tf, reset_average=a.reset)
+    g = post.run(case)
+    print(json.dumps({"case": case.name, "pass": g["pass"], "gates": g["gates"]}, default=str))
+    return 0 if g["pass"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

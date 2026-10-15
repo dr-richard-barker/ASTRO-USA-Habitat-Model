@@ -56,7 +56,9 @@ def main() -> None:
             v = [e["rms"] for k, r in a20["runs"].items() if k.startswith(model) for e in r["errors"].values()]
             return f"{min(v):.2f}", f"{max(v):.2f}"
         (m["SstLo"], m["SstHi"]), (m["KeLo"], m["KeHi"]) = rng("kOmegaSST"), rng("kEpsilon")
-    s6 = _j("results/cfd/fpm_s6_coarse_tr_siting.json")
+    s6 = _j("results/cfd/fpm_s6_coarse_ke_tr_siting.json")       # k-epsilon run once it passes, else kOmegaSST
+    if not (s6 and s6.get("pass")):
+        s6 = _j("results/cfd/fpm_s6_coarse_tr_siting.json")
     if s6:
         m["OffgasMixed"] = f"{max(s6['return_ppm'].values()):.1f}"
         m["OffgasCanopyNFT"] = f"{s6['rows']['zone:nft_canopy']['nft_wall']:.1f}"

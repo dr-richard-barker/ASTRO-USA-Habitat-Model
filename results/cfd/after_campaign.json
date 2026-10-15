@@ -6,5 +6,62 @@
    "tail": "|\n| aisle_x5:dCO2_ppm | 91.4 | 89.77 | 85.56 | 2.82 | 2.13 | monotonic |\n| aisle_x5:U_m_s | 0.03799 | 0.0297 | 0.01624 | 1.17 | 78.81 | monotonic |\n| aisle_x8:T_excess_K | 3.475 | 3.301 | 3.298 | 19.61 | 0.04 | monotonic |\n| aisle_x8:dCO2_ppm | 114.5 | 101.3 | 99.31 | 9.17 | 1.54 | monotonic |\n| aisle_x8:U_m_s | 0.0596 | 0.06809 | 0.06274 | 2.04 | 26.17 | oscillatory |\n\nAll mesh gates pass: True\n\n"
   },
   "wall_h": 0.12
+ },
+ "s6_ke_extend": {
+  "result": {
+   "pass": true,
+   "gates": {
+    "balance_bay": true,
+    "balance_photobioreactor": true,
+    "balance_nft_wall": true,
+    "general_mass": "True",
+    "general_heat_removed_W": true,
+    "general_co2_removed_mol_s": true,
+    "general_h2o_removed_mol_s": true,
+    "general_age_return_s": true,
+    "general_steady": true
+   }
+  },
+  "wall_h": 4.06
+ },
+ "s5b_ke_rebuild": {
+  "result": {
+   "pass": false,
+   "gates": {
+    "mass": "True",
+    "heat_removed_W": false,
+    "co2_removed_mol_s": false,
+    "h2o_removed_mol_s": false,
+    "age_return_s": true,
+    "steady": false
+   }
+  },
+  "wall_h": 3.07
+ },
+ "s5a_ke_extend": {
+  "result": {
+   "pass": false,
+   "gates": {
+    "mass": "True",
+    "heat_removed_W": false,
+    "co2_removed_mol_s": true,
+    "h2o_removed_mol_s": true,
+    "age_return_s": true,
+    "steady": false
+   }
+  },
+  "wall_h": 3.0
+ },
+ "repair_short_runs": {
+  "result": {},
+  "wall_h": 0.0
+ },
+ "sensors": {
+  "result": [
+   "fpm_m0_coarse_ke_tr",
+   "fpm_s2_coarse_ke_tr",
+   "fpm_s6_coarse_ke_tr"
+  ],
+  "wall_h": 0.0
  }
 }
