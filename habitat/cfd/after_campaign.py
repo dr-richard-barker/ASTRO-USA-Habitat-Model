@@ -78,10 +78,25 @@ def main() -> int:
         g = post.run(c)
         return {"pass": g["pass"], "gates": g["gates"]}
 
+    def s5b():
+        # double airflow: the Mac restarted (2026-10-14 ~14:55) 57.6 s into its transient run, with no write. Rebuild
+        # the transient from its finished steady start (the fixed transient.make aligns endTime with the writes)
+        from .transient import free_cpus, make as make_tr, solve as solve_tr
+        steady = RUNS / "fpm_s5b_coarse_ke"
+        if not (steady / "STATUS").read_text().startswith("DONE"):
+            raise RuntimeError("s5b steady start is not DONE")
+        n = free_cpus()
+        tr = make_tr(steady, nprocs=n)
+        (tr / "STATUS").write_text(f"RUNNING {os.getpid()}\n")
+        solve_tr(tr, n)
+        (tr / "STATUS").write_text("DONE\n")
+        g = post.run(tr)
+        return {"pass": g["pass"], "gates": g["gates"]}
+
     def repair():
         fixed = {}
         for c in sorted(RUNS.glob("fpm_*_ke_tr")):
-            if c.name in ("fpm_s6_coarse_ke_tr", "fpm_s5a_coarse_ke_tr"):
+            if c.name in ("fpm_s6_coarse_ke_tr", "fpm_s5a_coarse_ke_tr", "fpm_s5b_coarse_ke_tr"):
                 continue
             end = short_of_end(c)
             if end:
@@ -105,6 +120,7 @@ def main() -> int:
 
     step("gci_xcoarse", gci)
     step("s6_ke_extend", s6)
+    step("s5b_ke_rebuild", s5b)
     step("s5a_ke_extend", s5a)
     step("repair_short_runs", repair)
     step("sensors", sensors_all)
