@@ -1,4 +1,4 @@
-"""VR gates: the public scene passes, and a planted foreign mesh (stand-in for leaked private CAD) fails."""
+"""VR gates: the public scene passes, and a planted foreign mesh (stand-in for detailed CAD that is not in the public registry) fails."""
 import json
 import struct
 from pathlib import Path
@@ -30,11 +30,11 @@ def test_public_scene_passes():
 def test_planted_canary_fails_allow_list(tmp_path):
     js, binc = read_glb(GLB)
     mesh_node = next(n for n in js["nodes"] if "mesh" in n and "extensions" not in n)
-    canary = {**mesh_node, "name": "bioreactor_private_detail_CANARY",
-              "extras": {"element": "bioreactor_private_detail", "layer": "payload", "illustrative": False}}
+    canary = {**mesh_node, "name": "vendor_detail_CANARY",
+              "extras": {"element": "vendor_detail", "layer": "payload", "illustrative": False}}
     js["nodes"].append(canary)
     js["scenes"][js.get("scene", 0)]["nodes"].append(len(js["nodes"]) - 1)
     bad = tmp_path / "leak.glb"
     _write_glb(bad, js, binc)
     r = gate(2, bad, json.loads(SPEC.read_text()))
-    assert not r["gates"]["allow_list"] and "bioreactor_private_detail" in r["foreign_elements"]
+    assert not r["gates"]["allow_list"] and "vendor_detail" in r["foreign_elements"]

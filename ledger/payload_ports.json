@@ -1,0 +1,310 @@
+{
+ "units": "mm",
+ "frame": "each payload's own frame: origin at its envelope min corner, x = width, y = depth, z = up (as in its params file)",
+ "payloads": {
+  "bioreactor_rack": {
+   "kind": "assumed",
+   "why": "Illustrative port layout: one headspace vent per vessel on the rack's front face, at mid-height of the vessels; each carries the ledger's per-vessel vent flow and CO2.",
+   "ask_team": true,
+   "envelope_mm": [
+    951.0,
+    507.6,
+    869.0
+   ],
+   "gas_note": "planning value per vessel (ledger payloads.bioreactor_rack.co2_per_tube)",
+   "ports": [
+    {
+     "name": "vent_r0c0",
+     "kind": "gas_out",
+     "pos": [
+      115.5,
+      89.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    },
+    {
+     "name": "vent_r0c1",
+     "kind": "gas_out",
+     "pos": [
+      275.5,
+      89.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    },
+    {
+     "name": "vent_r0c2",
+     "kind": "gas_out",
+     "pos": [
+      435.5,
+      89.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    },
+    {
+     "name": "vent_r0c3",
+     "kind": "gas_out",
+     "pos": [
+      595.5,
+      89.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    },
+    {
+     "name": "vent_r0c4",
+     "kind": "gas_out",
+     "pos": [
+      755.5,
+      89.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    },
+    {
+     "name": "vent_r1c0",
+     "kind": "gas_out",
+     "pos": [
+      195.5,
+      418.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    },
+    {
+     "name": "vent_r1c1",
+     "kind": "gas_out",
+     "pos": [
+      355.5,
+      418.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    },
+    {
+     "name": "vent_r1c2",
+     "kind": "gas_out",
+     "pos": [
+      515.5,
+      418.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    },
+    {
+     "name": "vent_r1c3",
+     "kind": "gas_out",
+     "pos": [
+      675.5,
+      418.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    },
+    {
+     "name": "vent_r1c4",
+     "kind": "gas_out",
+     "pos": [
+      835.5,
+      418.3,
+      457.5
+     ],
+     "dir": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "flow_L_min": 0.35,
+     "co2_g_day": 1.82
+    }
+   ]
+  },
+  "photobioreactor": {
+   "kind": "assumed",
+   "why": "Illustrative port layout: a gas inlet on the +x face (for off-gas piped from the bioreactor rack) and a vent on the top of the culture vessel.",
+   "ask_team": true,
+   "envelope_mm": [
+    446.0,
+    400.0,
+    408.3152
+   ],
+   "gas_note": "culture CO2 uptake not modelled",
+   "ports": [
+    {
+     "name": "gas_in",
+     "kind": "gas_in",
+     "pos": [
+      446.0,
+      275.0,
+      60.0
+     ],
+     "dir": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "flow_L_min": 0.35
+    },
+    {
+     "name": "vent",
+     "kind": "gas_out",
+     "pos": [
+      170.0,
+      311.0,
+      356.0
+     ],
+     "dir": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "flow_L_min": 0.35
+    }
+   ]
+  },
+  "incubator": {
+   "kind": "assumed",
+   "why": "Illustrative port layout: an intake and an exhaust fan in the incubator's hood, blowing upward; fan flow not set.",
+   "ask_team": true,
+   "envelope_mm": [
+    440.0,
+    275.0,
+    300.0
+   ],
+   "gas_note": "plant CO2 exchange not modelled",
+   "ports": [
+    {
+     "name": "intake_fan",
+     "kind": "fan_in",
+     "pos": [
+      100.0,
+      137.5,
+      292.2
+     ],
+     "dir": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "flow_L_min": null,
+     "part": "C4a MF40101V1-1000U-A99"
+    },
+    {
+     "name": "exhaust_fan",
+     "kind": "fan_out",
+     "pos": [
+      340.0,
+      137.5,
+      292.2
+     ],
+     "dir": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "flow_L_min": null,
+     "part": "C4b MF40101V1-1000U-A99"
+    }
+   ]
+  },
+  "sensor_module": {
+   "kind": "assumed",
+   "why": "Illustrative port layout: a sample inlet and outlet on the -x face of the sensor module; a small pump draws room air through and returns it.",
+   "ask_team": true,
+   "envelope_mm": [
+    104.0,
+    96.0,
+    96.0
+   ],
+   "gas_note": "sensor only: no gas source (draws room air through, returns it)",
+   "ports": [
+    {
+     "name": "sample_in",
+     "kind": "sample",
+     "pos": [
+      0.0,
+      40.0,
+      23.0
+     ],
+     "dir": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "flow_L_min": 0.1
+    },
+    {
+     "name": "sample_out",
+     "kind": "sample_exhaust",
+     "pos": [
+      0.0,
+      56.0,
+      23.0
+     ],
+     "dir": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "flow_L_min": 0.1
+    }
+   ]
+  }
+ }
+}

@@ -64,7 +64,7 @@ def candidates(lo, hi, L: Ledger) -> tuple[np.ndarray, list[str]]:
     for z in L.val("sensors.mount_heights"):
         for x in np.arange(lo[0] + step, hi[0] - step / 2, step):
             pts += [[x, lo[1] + off, z], [x, hi[1] - off, z]]
-            wall += ["wall y=0 (battery / work side)", "wall y=max (hydroponic / Mycoponics side)"]
+            wall += ["wall y=0 (battery / work side)", "wall y=max (hydroponic / bioreactor-bay side)"]
         for y in np.arange(lo[1] + step, hi[1] - step / 2, step):
             pts.append([hi[0] - off, y, z]); wall.append("attic partition")
     return np.array(pts), wall
@@ -171,7 +171,7 @@ def write(res: dict) -> Path:
             ax.tick_params(labelsize=7)
     axs[0, 0].legend(fontsize=7)
     fig.suptitle(f"Wall sensor representativeness vs the occupied-zone mean, worst case over: {', '.join(res['cases'])} "
-                 "(gaps = inside equipment or near plants / water culture / Mycoponics / payloads)", fontsize=9)
+                 "(gaps = inside equipment or near plants / water culture / bioreactor bay / payloads)", fontsize=9)
     p = OUT / "sensor_placement.png"
     fig.savefig(p, dpi=110)
     plt.close(fig)
@@ -200,7 +200,7 @@ def viewer_overlay(res: dict, n: int = 5) -> Path:
     items.append({"file": glb.name, "label": f"suggested sensor positions (top {n})",
                   "note": f"Wall sensor positions most representative of the occupied zone, worst case over "
                           f"{', '.join(res['cases'])} (largest sphere = best): {where}. Screening result; "
-                          "positions near plants, water culture, Mycoponics and payloads excluded."})
+                          "positions near plants, water culture, the bioreactor bay and payloads excluded."})
     man.write_text(json.dumps(items, indent=1) + "\n")
     return glb
 

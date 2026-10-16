@@ -67,7 +67,7 @@ def build_spec() -> dict:
         cup_d=to_m(ch["cup_diameter"], "in"), plant_r=L.val("vr.plant_radius")["nft"],
         trough_lo=_m(tr.lo), trough_hi=_m(tr.hi))
 
-    # --- Mycoponics enclosure (payload bay)
+    # --- bioreactor bay enclosure (payload bay)
     my = P["myco_enclosure"]
     pay = [p for p in parts if p.cfd_role == "payload"]
     top = max((p.hi[2] for p in pay), default=0.0) / 1000.0

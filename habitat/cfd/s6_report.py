@@ -1,4 +1,4 @@
-"""S6 payload-siting report: where does the bioreactor off-gas CO2 end up for each route?
+"""S6 payload-siting report: where does the bioreactor rack's off-gas CO2 end up for each route?
 
     uv run python -m habitat.cfd.s6_report runs/fpm_s6_coarse
 
@@ -80,7 +80,7 @@ def run(case: Path) -> dict:
     # table
     lines = [f"# S6 payload siting — {case.name} (ledger {meta['ledger_digest']})\n",
              f"Same bioreactor CO₂ release in every route: {meta['tracer_info']['tubes']} tubes × "
-             f"{meta['tracer_info']['co2_per_tube_mol_s'] * 86400 * 44.0095:.2f} g/day. photobioreactor can take "
+             f"{meta['tracer_info']['co2_per_tube_mol_s'] * 86400 * 44.0095:.2f} g/day. The photobioreactor can take "
              f"{meta['tracer_info']['sparge_capacity_units']} units' off-gas (sparger max flow); the rest vent in the bay.\n",
              f"Well-mixed (return-grille) excess: " + ", ".join(f"{r} {ret[r]:.3f} ppm" for r in routes) + ".\n",
              "\n| Location | " + " | ".join(f"{r} ppm (×mixed)" for r in routes) + " | crew-generated ΔCO₂ ppm |\n",

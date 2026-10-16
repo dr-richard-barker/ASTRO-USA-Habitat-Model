@@ -1,6 +1,6 @@
 # Primary habitat — concept design-study metrics (NOT the team's design)
 
-Generated from `ledger/primary.yaml` (ledger c3a35eea4d025f64). Crew 6.
+Generated from `ledger/primary.yaml` (ledger bf8f08efaf8171a1). Crew 6.
 
 - Internal pressurised volume (airlock excluded): **488 m³** (airlock 11.4 m³)
 - Deck area: 130 m² (21.6 m² per crewmember)

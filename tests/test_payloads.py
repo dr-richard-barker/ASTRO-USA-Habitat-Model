@@ -25,7 +25,7 @@ def test_payloads_inside_bay_and_unpowered_in_m0():
 def test_powered_payload_heat_goes_to_bay():
     _, P = build(_ledger_with(**{"scenario_m0.payloads_powered": True}))
     bay = next(p for p in P if p.id == "myco_enclosure")
-    assert bay.heat_W == pytest.approx(16.4)        # photobioreactor LED at design max; others have no budget yet
+    assert bay.heat_W == pytest.approx(16.4)        # photobioreactor LED placeholder; others have no budget yet
 
 
 def test_oversized_payload_is_refused():
@@ -44,8 +44,8 @@ def test_ports_lie_on_their_envelopes():
 def test_photobioreactor_inlet_faces_the_bioreactor_rack():
     _, P = build()
     rack = next(p for p in P if p.id == "payload_bioreactor_rack")
-    alg = next(p for p in P if p.id == "payload_photobioreactor")
-    inlet = next(q for q in alg.ports if q["name"] == "gas_in")
+    pbr = next(p for p in P if p.id == "payload_photobioreactor")
+    inlet = next(q for q in pbr.ports if q["name"] == "gas_in")
     assert inlet["dir"][0] < 0 and rack.hi[0] < inlet["pos"][0]
 
 

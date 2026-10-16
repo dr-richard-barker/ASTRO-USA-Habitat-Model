@@ -95,11 +95,11 @@ class Ledger:
             data = json.loads((ROOT / v["from_json"]).read_text())
             out = {}
             for pay, blk in data[v["select"]].items():
-                out[pay] = {"envelope_check": {"value": blk["envelope_mm"], "unit": data["units"], "kind": "derived",
-                                               "source": blk["source"], "how": "envelope as evaluated alongside the ports"}}
+                # each payload block carries its own provenance: kind plus that kind's required fields
+                prov = {f: blk[f] for f in ("kind", "source", "how", "why", "ask_team") if f in blk}
+                out[pay] = {"envelope_check": {"value": blk["envelope_mm"], "unit": data["units"], **prov}}
                 for q in blk["ports"]:
-                    out[pay][q["name"]] = {"value": q, "unit": data["units"], "kind": "derived",
-                                          "source": blk["source"], "how": blk["how"]}
+                    out[pay][q["name"]] = {"value": q, "unit": data["units"], **prov}
             return out
         if isinstance(v, dict) and "from_json" in v:
             data = json.loads((ROOT / v["from_json"]).read_text())

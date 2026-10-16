@@ -3,7 +3,7 @@
 Model frame (mm, right-handed, z up):
   x — along the 464 in length, from the door end (printed left of Fig 2) toward the attic;
   y — across the 92 in width, from the printed BOTTOM wall of Fig 2 (battery / work-space side)
-      toward the printed TOP wall (hydroponics / Mycoponics wall): y_model = width - y_fig;
+      toward the printed TOP wall (hydroponics / bioreactor-bay wall): y_model = width - y_fig;
   z — up from the floor.
 
 No dimension is typed in this file: every number comes from the ledger (tests/test_lint.py
@@ -98,13 +98,13 @@ def build(L: Ledger | None = None, scenario: str = "m0") -> tuple[Ledger, list[P
                       [tlo[0], tlo[1], tlo[2]], [thi[0], tlo[1] + trough_depth, thi[2]], "blockage",
                       refs=["fpm.hydroponics.trough_height", "fpm.hydroponics.trough_depth"]))
 
-    # --- Mycoponics enclosure
-    lo, hi = _fig2_box(L, "fpm.fig2_zones.mycoponics", 0.0, H * L.num("fpm.mycoponics.enclosure_height_fraction", "-"))
-    bay = Part("myco_enclosure", "Mycoponics enclosure (payload bay)", "plants", lo, hi, "blockage",
-               refs=["fpm.fig2_zones.mycoponics", "fpm.mycoponics.enclosure_height_fraction"])
+    # --- bioreactor bay enclosure (the zone labelled Mycoponics in ICES-2026-251 Fig 2)
+    lo, hi = _fig2_box(L, "fpm.fig2_zones.mycoponics", 0.0, H * L.num("fpm.bay.enclosure_height_fraction", "-"))
+    bay = Part("myco_enclosure", "Bioreactor bay enclosure (payload bay)", "plants", lo, hi, "blockage",
+               refs=["fpm.fig2_zones.mycoponics", "fpm.bay.enclosure_height_fraction"])
     parts.append(bay)
 
-    # --- biomanufacturing payloads in the bay: PUBLIC ENVELOPES ONLY (ledger/payloads.yaml)
+    # --- bioreactor payloads in the bay: generic envelopes only (ledger/payloads.yaml)
     order = L.val("payloads.layout.order")
     clear = L.num("payloads.layout.frame_clearance", "mm")
     sizes = [L.val(f"payloads.{k}.envelope") for k in order]
@@ -114,7 +114,7 @@ def build(L: Ledger | None = None, scenario: str = "m0") -> tuple[Ledger, list[P
         raise ValueError(f"payloads do not fit in the bay: need {sum(sz[0] for sz in sizes)} mm, have {inner_x} mm")
     heat = {"bioreactor_rack": L.num("payloads.bioreactor_rack.heat", "W"),
             "photobioreactor": L.num("payloads.photobioreactor.led_power", "W"),
-            "incubator": L.num("payloads.incubator.heat", "W"), \"sensor_module\": L.num("payloads.sensor_module.heat", "W")}
+            "incubator": L.num("payloads.incubator.heat", "W"), "sensor_module": L.num("payloads.sensor_module.heat", "W")}
     powered = bool(L.val(sp("payloads_powered")))
     open_bay = scenario == "s6" and bool(L.val("scenario_s6.enclosure_open"))
     rot = L.val("payloads.layout.rotation_deg")
@@ -145,7 +145,7 @@ def build(L: Ledger | None = None, scenario: str = "m0") -> tuple[Ledger, list[P
                 raise ValueError(f"{path}: co2 {q['co2_g_day']} != ledger payloads.bioreactor_rack.co2_per_tube {co2_tube}")
             if k == "bioreactor_rack" and abs(q["flow_L_min"] - L.num("payloads.bioreactor_rack.vent_flow", "L/min")) > EXACT_TOL:
                 raise ValueError(f"{path}: flow differs from payloads.bioreactor_rack.vent_flow")
-        parts.append(Part(f"payload_{k}", L.val(f"payloads.{k}.label") if k == "bioreactor_rack" else f"{k} (envelope)",
+        parts.append(Part(f"payload_{k}", f"{k.replace('_', ' ')} (generic envelope)",
                           "payloads", lo_p, [x + sx, yc + sy / 2, bay.lo[2] + sz], "payload", ports=ports,
                           refs=[f"payloads.{k}.envelope", "payloads.layout.order", "payloads.layout.frame_clearance",
                                 "payloads.layout.rotation_deg"]))

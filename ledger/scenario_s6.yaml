@@ -1,27 +1,27 @@
-# S6 payload-siting study: where should the bioreactor off-gas go? One flow solution, three passive CO2 tracers.
+# S6 payload-siting study: where should the bioreactor rack's off-gas go? One flow solution, three passive CO2 tracers.
 # Every value is a declared assumption; the study answers "where does the bioreactor CO2 end up?", not absolute CO2 levels.
 scenario_s6:
   payloads_powered:
     value: true
     unit: '-'
     kind: assumed
-    why: "S6 runs the payloads: photobioreactor LED heat (16.4 W at design max) and the bioreactor off-gas CO2 are switched on."
+    why: "S6 runs the payloads: the photobioreactor's LED heat and the bioreactor rack's off-gas CO2 are switched on."
     ask_team: false
   enclosure_open:
     value: true
     unit: '-'
     kind: assumed
-    why: "The Mycoponics enclosure's walls, doors and ventilation are not described (Fig 4 shows a transparent box). With a solid block nothing inside it could exchange air, so S6 treats the bay as open to the room: an upper bound on mixing out of the bay."
+    why: "The bioreactor bay enclosure's walls, doors and ventilation are not described (Fig 4 shows a transparent box). With a solid block nothing inside it could exchange air, so S6 treats the bay as open to the room: an upper bound on mixing out of the bay."
     ask_team: true
   bioreactor_rack_open:
     value: true
     unit: '-'
     kind: assumed
-    why: "The rack is an open frame: 10 tubes (~0.105 m3) fill ~27 % of its 0.391 m3 envelope, below the 0.6 fill fraction above which a part is modelled as a solid (review item 10). Public envelope-only modelling also rules out drawing the tubes."
+    why: "The rack is an open frame: 10 tubes (~0.105 m3) fill ~27 % of its 0.391 m3 envelope, below the 0.6 fill fraction above which a part is modelled as a solid (review item 10). The model carries envelopes only, so the tubes are not drawn."
     ask_team: false
   routes:
     value: ["bay", "photobioreactor", "nft_wall"]
     unit: '-'
     kind: assumed
-    why: "Candidate off-gas routes: (1) each vessel vent vents into the bay; (2) piped to the photobioreactor sparger up to its maximum flow, the remaining units venting into the bay, photobioreactor uptake taken as zero (no rate stated), so the CO2 leaves at its vent; (3) ducted to the NFT canopy and released evenly through it."
+    why: "Candidate off-gas routes: (1) each vessel vent releases into the bay; (2) piped to the photobioreactor's sparger up to its maximum flow, the remaining vessels venting into the bay, culture uptake taken as zero (no rate for the placeholder), so the CO2 leaves at its vent; (3) ducted to the NFT canopy and released evenly through it."
     ask_team: true

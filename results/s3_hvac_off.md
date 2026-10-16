@@ -1,4 +1,4 @@
-# S3 HVAC off, door closed: CO₂ build-up (ledger 53413134410685ff)
+# S3 HVAC off, door closed: CO₂ build-up (ledger bf8f08efaf8171a1)
 
 Well-mixed 63.1 m³ of air (CFD fluid volume), crew at BVAD's awake 0.69 g CO₂/min each, starting from outdoor air (426.1 ppm, NOAA). Limit: OSHA PEL 5000 ppm, an 8-hour time-weighted average, so reaching it is a warning level, not an instant hazard. Plants (CO₂ uptake not modelled) and temperature (thermal mass unknown) are left out.
 

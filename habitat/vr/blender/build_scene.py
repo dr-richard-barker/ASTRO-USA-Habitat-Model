@@ -357,7 +357,7 @@ def build_glass_enclosure(e, g):
         box("glass_end", (xx, lo[1] + fr, lo[2] + fr), (xx + t, hi[1] - fr, hi[2] - fr), M["glass"], g)
     ns = e["params"]["shelves"]
     z_min = e["params"].get("shelves_above", 0.0) + 0.12          # keep shelves clear of the payload envelopes
-    tubes = empty("mycoponic_tubes", g, {"illustrative": True})
+    tubes = empty("bay_culture_tubes", g, {"illustrative": True})
     zs = [z for z in (lo[2] + (k + 1) * (hi[2] - lo[2]) / (ns + 1) for k in range(ns)) if z > z_min]
     for k, z in enumerate(zs):
         box(f"enclosure_shelf_{k}", (lo[0] + fr, lo[1] + fr, z - VISUAL["shelf"]), (hi[0] - fr, hi[1] - fr, z), M["alu"], g)
@@ -503,7 +503,7 @@ def build_mannequin(e, g):
 
 
 PAYLOAD_TINT = {"bioreactor_rack": (0.85, 0.55, 0.20), "photobioreactor": (0.25, 0.65, 0.35), "incubator": (0.30, 0.50, 0.85),
-                \"sensor_module\": (0.70, 0.35, 0.75)}
+                "sensor_module": (0.70, 0.35, 0.75)}
 
 
 def build_payload_envelope(e, g):

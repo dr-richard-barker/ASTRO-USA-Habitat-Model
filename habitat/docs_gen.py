@@ -18,7 +18,7 @@ TEAM_EXTRA = [
     ("Grow lights", "Model, count, wattage, mounting, photoperiod, and the canopy PPF they deliver.{light_budget}"),
     ("Hydroponics", "NFT channel type, pump flow, reservoir volume, crop list, planting schedule; Kratky and Dutch-bucket crops."),
     ("Power", "Battery chemistry/model (16 x 12 V), inverter/charge-controller model, cabinet ventilation; panel model, racking, tilt."),
-    ("Mycoponics", "Enclosure dimensions and material; planned mycoponic hardware and its loads."),
+    ("Bioreactor bay", "Enclosure dimensions and material; which bioreactors, incubators and sensors are planned, with their envelopes, gas ports and loads."),
     ("Operations", "Occupancy schedule in the FPM; sensor list and locations (Opto 22 / SIMOC); any existing logs (best validation data)."),
     ("Site", "Location on campus (for climate data and orientation)."),
     ("Other modules", "Laboratory Module and Crew Quarters dimensions; BioWaTERR trailer dimensions (ICES-2026-290)."),

@@ -65,12 +65,12 @@ fpm:
       why: "As trough_height; placed against the front edge of the 24 in hydroponics band."
       ask_team: true
 
-  mycoponics:
+  bay:
     enclosure_height_fraction:
       value: 0.58
       unit: '-'
       kind: assumed
-      why: "Fig 4 render: floor-standing transparent enclosure roughly 55-60 % of wall height; not dimensioned."
+      why: "Bioreactor bay (the zone labelled Mycoponics in ICES-2026-251 Fig 2). Fig 4 render: floor-standing transparent enclosure roughly 55-60 % of wall height; not dimensioned."
       ask_team: true
 
   propagation:

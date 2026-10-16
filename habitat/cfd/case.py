@@ -127,7 +127,7 @@ def s6_tracers(L, parts, h_mm: float) -> tuple[list, dict, dict]:
     half = 0.75 * h_mm
     zones, port_zone = [], {}
     gas = [q for q in rack.ports if q["kind"] == "gas_out"]
-    for q in gas:                                          # small box just outside each vessel vent tip
+    for q in gas:                                          # small box just outside each vessel vent
         c = np.array(q["pos"]) + np.array(q["dir"]) * 0.5 * h_mm
         port_zone[q["name"]] = f"port_{q['name']}"
         zones.append((port_zone[q["name"]], (c - half) / 1000, (c + half) / 1000))

@@ -68,7 +68,7 @@ def plan(ax, parts):
 
 
 def elevation(ax, parts, wall: str):
-    """Long-wall elevation: wall 'ymax' (hydroponic / Mycoponics side) or 'ymin' (battery / work side), seen from the aisle."""
+    """Long-wall elevation: wall 'ymax' (hydroponic / bioreactor-bay side) or 'ymin' (battery / work side), seen from the aisle."""
     P = {p.id: p for p in parts}
     W, H = _in(P["interior"].hi[0]), _in(P["interior"].hi[2])
     Dm = P["interior"].hi[1]
@@ -89,7 +89,7 @@ def elevation(ax, parts, wall: str):
     ax.annotate("", xy=(W + 5, 0), xytext=(W + 5, H), arrowprops=dict(arrowstyle="<->", lw=0.6))
     ax.text(W + 7, H / 2, f'{H:.1f}"\n[{H * IN_TO_MM:.0f}]', fontsize=5.5, va="center")
     ax.set_xlim(-8, W + 22); ax.set_ylim(-6, H + 8); ax.set_aspect("equal"); ax.axis("off")
-    title = ("ELEVATION A — hydroponic / Mycoponics wall" if wall == "ymax" else "ELEVATION B — battery / work-space wall")
+    title = ("ELEVATION A — hydroponic / bioreactor-bay wall" if wall == "ymax" else "ELEVATION B — battery / work-space wall")
     ax.set_title(title + " (door end left)", fontsize=8, loc="left")
 
 

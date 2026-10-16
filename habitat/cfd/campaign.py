@@ -25,7 +25,7 @@ from .case import build as build_case
 
 # (scenario, case tag). All with standard k-epsilon (ledger cfd.turbulence_model, chosen 2026-10-13 from the Annex 20
 # validation): the baseline first, so last night's kOmegaSST findings can be compared, then the scenarios. S6 also
-# picks up the re-synced payloads (the sensor module's side sample ports).
+# picks up the current payload ports.
 QUEUE = [("m0", "_ke"), ("s6", "_ke"), ("s2", "_ke"), ("s5a", "_ke"), ("s5b", "_ke")]
 OUT = ROOT / "results" / "cfd"
 GCI_STATUS = OUT / "gci_m0.STATUS"

@@ -42,7 +42,7 @@ primary:
   modules:
     value:
       - {name: crew, diameter: 4.2, length: 9.0, functions: ["crew quarters x6", "kitchen", "bathroom", "medical bay"]}
-      - {name: lab, diameter: 4.2, length: 8.0, functions: ["laboratory", "FMBR production", "Mycoponics"]}
+      - {name: lab, diameter: 4.2, length: 8.0, functions: ["laboratory", "FMBR production", "bioreactor bay"]}
       - {name: food, diameter: 4.2, length: 9.0, functions: ["autonomous hydroponic towers"]}
       - {name: eclss, diameter: 4.2, length: 8.0, functions: ["waste-management bioreactors (MABR, APMBR, SAMBR)", "RO system", "HVAC", "control systems", "laundry", "power & batteries"]}
     unit: m

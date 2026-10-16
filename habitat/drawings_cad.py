@@ -22,7 +22,7 @@ OUT = ROOT / "results" / "drawings"
 ROLE_LAYER = {"blockage": ("EQUIPMENT", 5), "source_zone": ("SOURCE_ZONE", 3), "payload": ("PAYLOAD", 30),
               "opening": ("OPENING", 4)}
 # cross-section cuts (element whose centre the cut passes through): chosen to show both long walls at once
-SECTIONS = {"A-A (battery cabinet / NFT wall)": "battery_cabinet", "B-B (workbench / Mycoponics bay)": "payload_bioreactor_rack"}
+SECTIONS = {"A-A (battery cabinet / NFT wall)": "battery_cabinet", "B-B (workbench / bioreactor bay)": "payload_bioreactor_rack"}
 
 
 def _rect(msp, x0, y0, x1, y1, layer):

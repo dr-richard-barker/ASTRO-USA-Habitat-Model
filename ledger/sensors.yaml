@@ -29,7 +29,7 @@ sensors:
     value: 0.3
     unit: m
     kind: assumed
-    why: "Candidates within this distance of a plant, water-culture, Mycoponics or payload part are dropped: plant and fungal gas exchange is not modelled yet (the canopy carries LED heat only), so the CFD would wrongly rate a sensor in or beside a canopy as representative of the room, whereas in reality it would read the plants."
+    why: "Candidates within this distance of a plant, water-culture, bioreactor-bay or payload part are dropped: plant and fungal gas exchange is not modelled yet (the canopy carries LED heat only), so the CFD would wrongly rate a sensor in or beside a canopy as representative of the room, whereas in reality it would read the plants."
     ask_team: false
   exclusion_layers:
     value: ["plants", "water", "payloads"]

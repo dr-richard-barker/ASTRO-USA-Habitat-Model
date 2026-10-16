@@ -88,7 +88,7 @@ def main() -> None:
         if m0 and "return_dCO2_halves_ppm" in m0.get("steady", {}):
             c = sum(m0["steady"]["return_dCO2_halves_ppm"]) / 2          # crew-generated excess, well mixed (return)
             crew = f", against about {c:.0f} ppm from the two working crew mixed the same way (baseline run)"
-        out.append(f"- **Biomanufacturing off-gas.** The bioreactor bioreactors' CO₂ (a modelled planning rate) adds about "
+        out.append(f"- **Biomanufacturing off-gas.** The bioreactor rack's CO₂ (a placeholder planning rate) adds about "
                    f"{offgas} ppm when mixed through the room, whichever of three routes it takes{crew}. Even piped "
                    f"to the hydroponic wall it raises the canopy zone by only {can:.1f} ppm, so with current "
                    "assumptions it is not a useful CO₂ supply for the plants.\n")

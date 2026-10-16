@@ -1,5 +1,5 @@
 # Crew metabolic loads. BVAD = Ewert M.K., Chen T.T., Powell C.D. (eds) (2022) Life Support Baseline Values and
-# Assumptions Document, NASA/TP-2015-218570/REV2. Local copy read: Mycoponics_revision/analysis/cache/.
+# Assumptions Document, NASA/TP-2015-218570/REV2 (NTRS 20210024855).
 crew:
   height:
     value: 1.75

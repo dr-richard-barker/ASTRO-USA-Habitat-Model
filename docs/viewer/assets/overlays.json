@@ -7,6 +7,6 @@
  {
   "file": "sensor_positions.glb",
   "label": "suggested sensor positions (top 5)",
-  "note": "Wall sensor positions most representative of the occupied zone, worst case over fpm_m0_coarse_ke_tr, fpm_s2_coarse_ke_tr, fpm_s5a_coarse_ke_tr, fpm_s6_coarse_ke_tr (largest sphere = best): 1. attic partition y = 0.75 m, z 1.2 m; 2. wall y=0 x = 10.25 m, z 1.2 m; 3. wall y=0 x = 2.00 m, z 1.2 m; 4. wall y=0 x = 10.50 m, z 1.2 m; 5. attic partition y = 0.50 m, z 1.2 m. Screening result; positions near plants, water culture, Mycoponics and payloads excluded."
+  "note": "Wall sensor positions most representative of the occupied zone, worst case over fpm_m0_coarse_ke_tr, fpm_s2_coarse_ke_tr, fpm_s5a_coarse_ke_tr, fpm_s6_coarse_ke_tr (largest sphere = best): 1. attic partition y = 0.75 m, z 1.2 m; 2. wall y=0 x = 10.25 m, z 1.2 m; 3. wall y=0 x = 2.00 m, z 1.2 m; 4. wall y=0 x = 10.50 m, z 1.2 m; 5. attic partition y = 0.50 m, z 1.2 m. Screening result; positions near plants, water culture, the bioreactor bay and payloads excluded."
  }
 ]

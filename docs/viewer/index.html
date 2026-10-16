@@ -46,7 +46,7 @@ import { initCollab } from "./collab.js";
 const params = new URLSearchParams(location.search);
 const LOD = ["1", "2"].includes(params.get("lod")) ? params.get("lod") : "2";
 const LAYER_NAMES = { structure:"Container & structure", plants:"Plants & growing systems", water:"Water", power:"Power & electrical",
-  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls", payloads:"Biomanufacturing payloads (envelopes)", site:"Mini-Hab site (concept)",
+  air:"HVAC", crew:"Crew", work:"Work space", controls:"Controls", payloads:"Bioreactor payloads (generic envelopes)", site:"Mini-Hab site (concept)",
   primary:"Primary habitat (concept)" };
 
 const el = document.getElementById("view");
