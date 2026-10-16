@@ -115,9 +115,56 @@ def run(case: Path, decomposed: bool = False, z_m: float | None = None, y_m: flo
     return res
 
 
+SCENARIO_LABEL = {"m0": "baseline", "s2": "six crew (S2)", "s5a": "half airflow (S5a)", "s5b": "double airflow (S5b)",
+                  "s6": "payload siting (S6)"}
+OVERLAY_STYLE = {"AoA": ("age of air", "s", "magma", "dark = fresh air"),
+                 "T": ("air temperature", "°C", "cividis", "dark = cool"),
+                 "dCO2": ("CO₂ above supply air", "ppm", "viridis", "dark = low")}
+
+
+def overlays(case: Path, fields=("AoA", "T", "dCO2"), z_m: float = 1.1) -> list[dict]:
+    """Coloured breathing-height plan slices of a passing time-averaged run, as viewer overlays (GLB + manifest entry).
+    Replaces any earlier manifest entry for the same field and scenario (e.g. a superseded run's overlay)."""
+    meta = json.loads((case / "case_meta.json").read_text())
+    gates = json.loads((ROOT / "results" / "cfd" / f"{case.name}_gates.json").read_text())
+    if not (meta.get("transient") and gates.get("pass")):
+        raise ValueError(f"{case.name}: overlays only from time-averaged runs that pass their gates")
+    vol, it = load(case)
+    vol = vol.cell_data_to_point_data()
+    tri = vol.slice(normal="z", origin=(0, 0, z_m)).triangulate()
+    faces = tri.faces.reshape(-1, 4)[:, 1:]
+    scen = SCENARIO_LABEL.get(meta["scenario"], meta["scenario"])
+    when = f"time mean {meta['transient']['avg_from_s']:.0f}-{it:.0f} s"
+    man = ROOT / "vr" / "web" / "assets" / "overlays.json"
+    items = json.loads(man.read_text()) if man.exists() else []
+    out = []
+    for f in fields:
+        name, unit, cmap, hint = OVERLAY_STYLE[f]
+        vals = tri.point_data[f + "Mean"] - (273.15 if f == "T" else 0.0)
+        lo_v, hi_v = np.percentile(vals, [2, 98])
+        rgba = (matplotlib.colormaps[cmap](np.clip((vals - lo_v) / (hi_v - lo_v), 0, 1)) * 255).astype(np.uint8)
+        m = trimesh.Trimesh(vertices=to_gltf_frame(tri.points), faces=faces, vertex_colors=rgba, process=False)
+        glb = ROOT / "vr" / "web" / "assets" / f"{case.name}_{f}_z{z_m:.2f}.glb"
+        m.export(glb)
+        label = f"{name}, {scen}, z = {z_m:.1f} m"
+        items = [o for o in items if o["file"] != glb.name and not o.get("field") == f"{f}:{meta['scenario']}"]
+        entry = {"file": glb.name, "label": label, "field": f"{f}:{meta['scenario']}",
+                 "note": f"{name[0].upper() + name[1:]} {lo_v:.{0 if unit != '°C' else 1}f}-{hi_v:.{0 if unit != '°C' else 1}f} {unit} "
+                         f"(2nd-98th percentile, {cmap}: {hint}) — {case.name} ({meta.get('turbulence_model', 'kOmegaSST')}), "
+                         f"{when}; coarse mesh, placeholder HVAC."}
+        items.append(entry)
+        out.append(entry)
+    man.write_text(json.dumps(items, indent=1) + "\n")
+    return out
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("case")
     ap.add_argument("--decomposed", action="store_true")
+    ap.add_argument("--overlays", nargs="*", metavar="FIELD", help="only write viewer overlays (default AoA T dCO2)")
     a = ap.parse_args()
-    print(json.dumps(run(Path(a.case), a.decomposed), indent=1))
+    if a.overlays is not None:
+        print(json.dumps(overlays(Path(a.case), tuple(a.overlays) or ("AoA", "T", "dCO2")), indent=1))
+    else:
+        print(json.dumps(run(Path(a.case), a.decomposed), indent=1))

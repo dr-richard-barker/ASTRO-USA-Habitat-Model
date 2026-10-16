@@ -425,5 +425,6 @@ OpenFOAM v2606 image). Ledger digest <code>{L.digest()}</code>.</p>
     return DOCS / "index.html"
 
 
-if __name__ == "__main__":
-    print(build())
+if __name__ == "__main__":                 # the project page (habitat.site) replaced this build report
+    from .site import build as build_site
+    print(build_site())

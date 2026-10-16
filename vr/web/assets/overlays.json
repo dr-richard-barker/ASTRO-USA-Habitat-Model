@@ -1,12 +1,31 @@
 [
  {
-  "file": "fpm_m0_coarse_tr_age_z1.10.glb",
-  "label": "age of air at z = 1.1 m",
-  "note": "Age of air 355-483 s (2nd-98th pct, magma: dark = fresh) \u2014 fpm_m0_coarse_tr, time mean 446-1337 s; coarse mesh, placeholder HVAC."
- },
- {
   "file": "sensor_positions.glb",
   "label": "suggested sensor positions (top 5)",
   "note": "Wall sensor positions most representative of the occupied zone, worst case over fpm_m0_coarse_ke_tr, fpm_s2_coarse_ke_tr, fpm_s5a_coarse_ke_tr, fpm_s6_coarse_ke_tr (largest sphere = best): 1. attic partition y = 0.75 m, z 1.2 m; 2. wall y=0 x = 10.25 m, z 1.2 m; 3. wall y=0 x = 2.00 m, z 1.2 m; 4. wall y=0 x = 10.50 m, z 1.2 m; 5. attic partition y = 0.50 m, z 1.2 m. Screening result; positions near plants, water culture, the bioreactor bay and payloads excluded."
+ },
+ {
+  "file": "fpm_m0_coarse_ke_tr_AoA_z1.10.glb",
+  "label": "age of air, baseline, z = 1.1 m",
+  "field": "AoA:m0",
+  "note": "Age of air 349-478 s (2nd-98th percentile, magma: dark = fresh air) \u2014 fpm_m0_coarse_ke_tr (kEpsilon), time mean 446-1337 s; coarse mesh, placeholder HVAC."
+ },
+ {
+  "file": "fpm_m0_coarse_ke_tr_T_z1.10.glb",
+  "label": "air temperature, baseline, z = 1.1 m",
+  "field": "T:m0",
+  "note": "Air temperature 20.4-21.7 \u00b0C (2nd-98th percentile, cividis: dark = cool) \u2014 fpm_m0_coarse_ke_tr (kEpsilon), time mean 446-1337 s; coarse mesh, placeholder HVAC."
+ },
+ {
+  "file": "fpm_m0_coarse_ke_tr_dCO2_z1.10.glb",
+  "label": "CO\u2082 above supply air, baseline, z = 1.1 m",
+  "field": "dCO2:m0",
+  "note": "CO\u2082 above supply air 71-134 ppm (2nd-98th percentile, viridis: dark = low) \u2014 fpm_m0_coarse_ke_tr (kEpsilon), time mean 446-1337 s; coarse mesh, placeholder HVAC."
+ },
+ {
+  "file": "fpm_s5a_coarse_ke_tr_AoA_z1.10.glb",
+  "label": "age of air, half airflow (S5a), z = 1.1 m",
+  "field": "AoA:s5a",
+  "note": "Age of air 794-1069 s (2nd-98th percentile, magma: dark = fresh air) \u2014 fpm_s5a_coarse_ke_tr (kEpsilon), time mean 2675-5350 s; coarse mesh, placeholder HVAC."
  }
 ]

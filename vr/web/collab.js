@@ -6,7 +6,15 @@ import * as THREE from "three";
 
 const PROD_RELAY = "wss://astro-usa-habitat-relay.astrobotany.workers.dev";   // set at deploy time
 const LOCAL_RELAY = "ws://127.0.0.1:8797";
+const RELAY_DEPLOYED = false;                     // flip when the relay Worker is deployed (needs the owner's OK)
 const POSE_HZ = 10;
+
+// The shared-session panel only appears where a relay can be reached: a deployed relay, an explicit ?relay=, or
+// the local dev relay. On the static site without a relay it stays hidden instead of failing to connect.
+export function collabAvailable() {
+  return RELAY_DEPLOYED || new URLSearchParams(location.search).has("relay") ||
+    ["localhost", "127.0.0.1"].includes(location.hostname);
+}
 
 function relayBase() {
   const q = new URLSearchParams(location.search).get("relay");
@@ -30,6 +38,7 @@ function label(text, color) {
 }
 
 export function initCollab({ scene, camera, renderer, ui, getDigest }) {
+  if (!collabAvailable()) return { available: false, tick() {}, onClick() { return false; } };
   const state = { ws: null, id: null, peers: new Map(), pins: new Map(), mine: new Set(), pinMode: false,
                   name: "", color: palette[Math.floor(Math.random() * palette.length)], tries: 0, room: roomFromHash() };
   const root = new THREE.Group(); root.name = "collab"; scene.add(root);

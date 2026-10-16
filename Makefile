@@ -1,4 +1,4 @@
-.PHONY: manuscript all fig2 cad check cfd-coarse post light docs test vr drawings report
+.PHONY: site manuscript all fig2 cad check cfd-coarse post light docs test vr drawings report
 all: fig2 cad check docs test
 fig2:        ## needs the team PDF in sources/private/
 	uv run python -I sources/extract_fig2.py sources/private/ICES-2026-251.pdf sources/fig2_geometry.json
@@ -24,8 +24,10 @@ vr:
 drawings:
 	uv run python -m habitat.drawings
 	uv run python -m habitat.drawings_cad
-report: drawings
-	uv run python -m habitat.report
+report: site       ## the project page replaced the build report
+site: drawings
+	uv run python -m habitat.manuscript_figures
+	uv run python -m habitat.site
 
 manuscript:   ## numbers, figures and tables from the result files, then the PDF (the PDF is git-ignored; the figures and tables are committed)
 	uv run python -m habitat.manuscript_numbers

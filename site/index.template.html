@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<!-- TEMPLATE -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASTRO-USA Habitat Model</title>
+<meta name="description" content="A sourced parametric model of the ASTRO-USA Mini-Hab Food Production Module: engineering CAD, airflow CFD and an interactive 3-D / VR model, all generated from one ledger.">
+<script>
+  (function(){ var t = null; try { t = localStorage.getItem("barker.theme"); } catch(e) {}
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); })();
+</script>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<nav class="topbar" aria-label="Page">
+  <a class="wordmark" href="#top" aria-label="ASTRO-USA Habitat Model, top of page">
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 7v10M18 7v10" stroke="currentColor" stroke-width="2"/></svg>
+    ASTRO-USA · HABITAT MODEL</a>
+  <div class="quick"><a href="#habitat">Habitat</a><a href="#model">3-D model</a><a href="#results">Results</a><a href="#concepts">Concepts</a></div>
+  <button class="theme-btn" type="button" aria-label="Toggle light or dark theme" title="Toggle light / dark"></button>
+</nav>
+
+<header id="top">
+  <div class="wrap">
+    <p class="eyebrow">ASTRO-USA Mini-Hab · Food Production Module</p>
+    <h1>A digital model of an analog-habitat food production module</h1>
+    <p class="lede">The ASTRO-USA Food Production Module is a converted shipping container that grows food for a
+      simulated crew. This model rebuilds it from its published description and generates engineering CAD, airflow
+      simulations and an interactive 3-D / VR walk-through from one sourced ledger, so a corrected input reaches every
+      output.</p>
+    <p class="meta">{{NRecords}} ledger records ({{NSpecified}} quoted from sources, {{NDerived}} derived,
+      {{NAssumed}} declared assumptions) · ledger {{LedgerDigest}} · build {{GitHead}}</p>
+    <div class="btns">
+      <a class="btn primary" href="#model">Explore the 3-D model</a>
+      <a class="btn" href="#results">Results</a>
+      <a class="btn" href="#concepts">Concepts</a>
+      <a class="btn" href="{{REPO}}">Code &amp; data</a>
+    </div>
+    <div class="banner" role="note"><span aria-hidden="true">ⓘ</span><span><b>Screening level.</b> The HVAC unit, grow
+      lights and envelope of the module are not yet known, so the model uses declared placeholders for them, coarse
+      meshes and adiabatic walls. Results show trends and trade-offs, not predictions of the built module.</span></div>
+  </div>
+</header>
+
+<section id="habitat">
+  <div class="wrap">
+    <h2>The habitat</h2>
+    <p class="sub">What the Food Production Module holds, as described by the ASTRO-USA team.</p>
+    <p>ASTRO-USA (Analog Simulation Training and Research Outpost Utilizing Self-sustaining Architecture) is an
+      analog habitat being developed at Purdue University. Its first physical module, the Food Production Module
+      (FPM), converts a shipping container (modelled as a 40&nbsp;ft high-cube) into a growing space with a vertical
+      nutrient-film (NFT) hydroponic wall, a propagation rack, Kratky and Dutch-bucket systems, a bay for bioreactor
+      payloads, a battery bank and a work space, with the HVAC unit in an attic at the far end. It is designed to
+      support a crew of {{MissionCrew}} for a two-week mission (Peters et&nbsp;al., ICES-2026-251).</p>
+    <div class="cards">
+      <div class="card"><div class="stat">{{NSites}}</div><h3>NFT plant sites</h3>
+        <p>{{NTowers}} towers of {{NSitesPerTower}} sites on the hydroponic wall; a propagation rack of
+          {{PropLevels}} levels.</p></div>
+      <div class="card"><div class="stat">{{LoadAvg}}<small>W</small></div><h3>Average electrical load</h3>
+        <p>{{LoadMax}}&nbsp;W maximum steady draw and about {{DailyEnergy}}&nbsp;kWh a day, from {{NPanels}} roof panels
+          ({{SolarKW}}&nbsp;kW) and {{NBatteries}} batteries.</p></div>
+      <div class="card"><div class="stat">{{BaseVolume}}<small>m³</small></div><h3>Air volume</h3>
+        <p>The living space modelled in the airflow simulations, attic excluded.</p></div>
+      <div class="card"><div class="stat">{{AisleMin}}<small>m</small></div><h3>Narrowest clear aisle</h3>
+        <p>{{WalkArea}}&nbsp;m² of the {{FloorArea}}&nbsp;m² floor stays walkable once equipment clearance is kept.</p></div>
+    </div>
+    <figure>
+      <img src="assets/fig/fig_render.jpg" alt="Cut-away render of the Food Production Module seen from above" loading="lazy">
+      <figcaption>Cut-away generated from the ledger, door end on the left: NFT wall at the back, Kratky tubs and
+        battery cabinet in front, Dutch buckets, propagation rack, the bioreactor bay (back right) and the workbench.
+        Plants, crew figures and fittings are illustrative.</figcaption>
+    </figure>
+    <figure class="drawing">
+      <a href="assets/FPM_GA.svg"><img src="assets/fig/fig_drawing.png" alt="Plan and long-wall elevations of the Food Production Module" loading="lazy"></a>
+      <figcaption>General arrangement from the parts registry: plan and both long walls. Plan dimensions are taken
+        from the vector geometry of the paper's floor plan ({{FigTwoDims}} printed dimensions reproduced within
+        {{FigTwoMaxErrIn}}&nbsp;in); most heights are assumptions. CAD exchange (DXF, mm):
+        <a href="assets/FPM_plan.dxf">plan</a>, <a href="assets/FPM_elevation_A.dxf">elevation A</a>,
+        <a href="assets/FPM_elevation_B.dxf">elevation B</a>, <a href="assets/FPM_section_AA.dxf">section A-A</a>,
+        <a href="assets/FPM_section_BB.dxf">section B-B</a>; full sheet as <a href="assets/FPM_GA.svg">SVG</a> or <a href="assets/FPM_GA.pdf">PDF</a>;
+        <a href="assets/FPM_sections.svg">cross-sections (SVG)</a>.</figcaption>
+    </figure>
+    <div class="two">
+      <figure>
+        <img src="assets/render_lod0_aisle_from_door.png" alt="View along the aisle from the door" loading="lazy">
+        <figcaption>Along the aisle from the door.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/render_lod0_payload_bay.png" alt="Generic payload envelopes in the bioreactor bay" loading="lazy">
+        <figcaption>The bioreactor bay with generic, unbranded payload envelopes (a ten-vessel bioreactor rack, a
+          photobioreactor, an incubator and a sensor module); coloured markers are gas ports.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section id="model">
+  <div class="wrap">
+    <h2>Interactive model</h2>
+    <p class="sub">The same scene the VR review uses, in the browser. Nothing loads until you ask.</p>
+    <div class="tabs" role="tablist" aria-label="Scene">
+      <button role="tab" aria-selected="true" data-src="viewer/?inside=1">Food Production Module</button>
+      <button role="tab" aria-selected="false" tabindex="-1" data-src="viewer/?site=1">Mini-Hab site</button>
+      <button role="tab" aria-selected="false" tabindex="-1" data-src="viewer/?scene=primary">Primary habitat concept</button>
+    </div>
+    <div class="viewer">
+      <img class="poster" src="assets/fig/fig_render.jpg" alt="">
+      <button class="load-viewer" type="button">Load the 3-D model</button>
+    </div>
+    <p class="note"><a id="viewer-full" href="viewer/?inside=1">Open full screen</a> · works in desktop browsers; a WebXR headset
+      can enter VR from the full-screen view.</p>
+    <div class="controls">
+      <div><b>Look around:</b> drag to orbit, scroll to zoom, click any part to see what it is and where its values come from.</div>
+      <div><b>Layers:</b> switch systems on and off, and untick the roof and near wall to see inside.</div>
+      <div><b>CFD overlays:</b> temperature, CO₂ and age of air at breathing height, and the suggested sensor positions.</div>
+      <div><b>Tour and measure:</b> step through the zones, or click two points for a distance.</div>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <h2>Analysis results</h2>
+    <p class="sub">Airflow, heat and CO₂ from OpenFOAM, plus well-mixed models where they suffice.</p>
+    <p>Every simulation is a time-averaged transient run that must close its mass, heat, CO₂, water-vapour and
+      age-of-air balances within 1&nbsp;% and be statistically stationary before any value is used.</p>
+    {{TABLE_RUNS}}
+
+    <h3 class="h3">Validation: choosing the turbulence model</h3>
+    <p class="finding">Against laser-Doppler measurements of the IEA Annex 20 ventilated-room benchmark, the standard
+      k-ε model erred by {{KeLo}}–{{KeHi}} of the inlet velocity and SST k-ω by {{SstLo}}–{{SstHi}}, so the
+      habitat runs use <strong>k-ε</strong>.</p>
+    <figure><img src="assets/fig/fig_annex20.png" alt="Simulated and measured velocity profiles for the Annex 20 test case" loading="lazy">
+      <figcaption>Mean horizontal velocity along the four measurement lines, both models on three meshes, against
+        the measurements (circles). The buoyant variant of the benchmark has no measurements.</figcaption></figure>
+    {{TABLE_ANNEX20}}
+
+    <h3 class="h3">The baseline airflow</h3>
+    <p class="finding">The cold supply jet leaves the attic partition at ceiling height and falls to the floor part-way
+      along the room; the two crew plumes are the warmest, highest-CO₂ air. The run closes its heat balance to
+      {{BaseHeatErr}}&nbsp;% and its CO₂ balance to {{BaseCOTwoErr}}&nbsp;%.</p>
+    <figure><img src="assets/fig/fig_fields.png" alt="Baseline temperature, CO2 and age of air in plan and section" loading="lazy">
+      <figcaption>Time-averaged temperature, CO₂ above the supply air and age of air, in plan at breathing height and
+        in a section along the aisle.</figcaption></figure>
+    <p class="finding">Room-wide averages are robust: they change by at most {{GciDomainMax}}&nbsp;% across three
+      meshes and {{ModelDomainMax}}&nbsp;% between turbulence models. Single-point values are not (up to
+      {{GciLocalMax}} and {{ModelLocalMax}}&nbsp;%).</p>
+    <details><summary>Mesh study ({{GciNOk}} of {{GciN}} quantities can be given a GCI)</summary>
+      <p class="note">Celik et al. (2008) procedure on {{GciHFine}}, {{GciHMed}} and {{GciHCoarse}}&nbsp;mm meshes. A GCI is
+        quoted only where the mesh-to-mesh differences exceed the time-averaging noise and the observed order p lies
+        between {{PRangeLo}} and {{PRangeHi}}.</p>
+      {{TABLE_GCI}}</details>
+
+    <h3 class="h3">Occupancy and airflow</h3>
+    <p class="finding">With six crew the room's CO₂ rise grows ×{{StwoCOTwoRatio}}. <strong>Halving the airflow</strong>
+      raises the temperature rise ×{{SfiveaTRatio}}, CO₂ ×{{SfiveaCOTwoRatio}} and the age of air ×{{SfiveaAgeRatio}},
+      more than the ×2 of a perfectly mixed room: the air-change efficiency falls from {{BaseACE}} to {{SfiveaACE}}.
+      The room mixes less well at low flow, not only less often, so the attic unit's airflow matters.</p>
+    <figure class="narrow"><img src="assets/fig/fig_age_sections.png" alt="Age of air along the aisle for baseline, six crew and half airflow" loading="lazy">
+      <figcaption>Age of air along the aisle divided by each run's nominal time constant: 1 everywhere in a perfectly
+        mixed room. At half airflow the jet falls close to the partition and leaves older air beyond it.</figcaption></figure>
+    {{TABLE_SCENARIOS}}
+    <p class="note">Double airflow did not reach a statistically stationary state within its run and is not reported.</p>
+
+    <h3 class="h3">Where bioreactor off-gas should go</h3>
+    <p class="finding">At the placeholder rate the bioreactor rack's CO₂ adds about {{OffgasMixed}}&nbsp;ppm mixed through
+      the room, against about {{BaseReturnCOTwo}}&nbsp;ppm from two working crew; even ducted to the hydroponic wall it
+      raises the canopy by only {{OffgasCanopyNFT}}&nbsp;ppm. At these rates it is neither a hazard nor a useful CO₂
+      supply for the plants.</p>
+    <figure class="narrow"><img src="assets/fig/fig_offgas.png" alt="Bioreactor CO2 in plan for three release routes" loading="lazy">
+      <figcaption>The same release carried as three tracers in one flow field: vented into the bay, piped into the
+        photobioreactor, or ducted to the NFT canopy; plan at canopy height.</figcaption></figure>
+
+    <h3 class="h3">Lighting against the power budget</h3>
+    <div class="cards">
+      <div class="card"><div class="stat">{{LightMaxPPF}}</div><h3>µmol m⁻² s⁻¹ at most</h3>
+        <p>on the {{WallArea}}&nbsp;m² NFT wall if all {{LoadMax}}&nbsp;W went to light at the best LED efficacy
+          reported ({{LightEff}}&nbsp;µmol/J).</p></div>
+      <div class="card"><div class="stat">{{MecLo}}–{{MecHi}}</div><h3>µmol m⁻² s⁻¹ needed</h3>
+        <p>the range of NASA's lettuce crop model (BVAD).</p></div>
+      <div class="card"><div class="stat">{{LightPowerNeeded}}<small>W</small></div><h3>for lights alone</h3>
+        <p>to reach the bottom of that range. Either the lights sit outside the stated budget or the crop will be
+          strongly light-limited.</p></div>
+    </div>
+
+    <h3 class="h3">If the HVAC fails</h3>
+    <p class="finding">With the door shut and no air exchange, CO₂ reaches OSHA's limit (an eight-hour average) in about
+      {{SthreeSixCrew}}&nbsp;h with six crew and {{SthreeTwoCrew}}&nbsp;h with two. Leakage slows this a lot, so a
+      door-shut CO₂ decay test is the measurement that settles it.</p>
+    <figure class="narrow"><img src="assets/fig/fig_s3.png" alt="CO2 against time after the HVAC stops" loading="lazy">
+      <figcaption>Well-mixed model of the module's air with two or six crew and three leakage rates; plants not
+        included.</figcaption></figure>
+
+    <h3 class="h3">Where to put a room sensor</h3>
+    <p class="finding">A wall sensor on {{SensorWhere}} at {{SensorZ}}&nbsp;m stayed within {{SensorT}}&nbsp;K and
+      {{SensorCOTwo}}&nbsp;% of the occupied-zone mean in all {{SensorRuns}} runs, {{SensorClear}}&nbsp;m from the nearest
+      growing system. Toggle "suggested sensor positions" in the 3-D model to see them.</p>
+    {{TABLE_SENSORS}}
+  </div>
+</section>
+
+<section id="concepts">
+  <div class="wrap">
+    <h2>Concepts</h2>
+    <p class="sub">The ASTRO-USA plan, and how this model is built.</p>
+
+    <h3 class="h3">The Mini-Hab and the primary habitat</h3>
+    <p>In the ASTRO-USA plan the Food Production Module is one of several modules of a secondary habitat, the Mini-Hab,
+      alongside a Biosafety Level 2 Laboratory Module, Crew Quarters and NASA Kennedy Space Center's BioWaTERR
+      wastewater-treatment trailer, which together aim to close the waste and nutrient loops; SIMOC Live and an
+      Opto&nbsp;22 system will monitor and control them. A primary habitat is
+      envisaged as modular cylindrical and spherical sections in aluminium or titanium. Only the FPM is dimensioned
+      in the paper; the other modules here are concept-level placeholders.</p>
+    <div class="two">
+      <figure><img src="assets/render_lod0_site_overview.png" alt="Mini-Hab site concept" loading="lazy">
+        <figcaption>Mini-Hab site after the paper's block plan (topology only; module sizes assumed).</figcaption></figure>
+      <figure><img src="assets/render_lod0_primary_overview.png" alt="Primary habitat concept" loading="lazy">
+        <figcaption>Output of the primary-habitat concept generator: a design-study tool, not the team's design.</figcaption></figure>
+    </div>
+    <p class="note">The generated concept encloses {{PrimaryVol}}&nbsp;m³ of pressurised volume (airlock excluded) for a
+      crew of {{PrimaryCrew}}; it meets NASA's minimum net habitable volume of {{NHVGuide}}&nbsp;m³ per person
+      (Whitmire et&nbsp;al. 2014) once at least {{PrimaryMinFrac}} of that volume is habitable.</p>
+
+    <h3 class="h3">One ledger, three models</h3>
+    <p>Every dimension and load is a ledger record with its value, unit and either a source with a verbatim quote or a
+      declared assumption with its reason; the build refuses anything else. A parts registry turns the ledger into
+      three models, each with its own checks, so that replacing an assumption with a measured fact updates all of them.</p>
+    <ol class="flow" aria-label="Model pipeline">
+      <li class="key"><b>Sources</b><span>ICES-2026-251 floor plan and text, container specification, NASA BVAD</span></li>
+      <li class="key"><b>Ledger</b><span>{{NRecords}} records: quoted, derived or declared assumption</span></li>
+      <li><b>Parts registry</b><span>every part with its role in CAD, CFD and VR</span></li>
+      <li><b>Engineering CAD</b><span>STEP, STL, GLB, DXF drawings; floor-plan overlay gate</span></li>
+      <li><b>Airflow CFD</b><span>OpenFOAM cases; balance, stationarity and mesh checks</span></li>
+      <li><b>VR scene</b><span>three levels of detail, navigation mesh, this browser viewer</span></li>
+    </ol>
+    <details><summary>Ledger records by file and kind</summary>{{TABLE_LEDGER}}</details>
+
+    <h3 class="h3">What the team can supply next</h3>
+    <p>{{NAskTeam}} assumptions can only be replaced by the ASTRO-USA team. The answers that unblock the most:</p>
+    <ol class="inputs">
+      <li><b>Grow lights:</b> fixture, count, wattage, photoperiod, and whether they are inside the power budget.</li>
+      <li><b>Attic HVAC:</b> make and model, airflow, grille positions, and whether it brings in outdoor air.</li>
+      <li><b>Container leakage:</b> a door-shut CO₂ decay measurement.</li>
+      <li><b>The CAD model</b> behind the paper's renders, to check this geometry against it.</li>
+      <li><b>Bioreactor payloads:</b> which hardware, with envelopes, gas ports and loads.</li>
+    </ol>
+    <details><summary>All {{NAssumed}} assumptions</summary>{{TABLE_ASSUMPTIONS}}</details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div>
+      <p>Design: the ASTRO-USA team, Purdue University — Peters, J. M. et&nbsp;al. (2026) <em>Analog Simulation Training
+        and Research Outpost Utilizing Self-sustaining Architecture: A Testbed for Moon and Mars Technology at Purdue
+        University</em>. 55th International Conference on Environmental Systems, ICES-2026-251. This model is an
+        independent digital representation built from that paper, not the team's own CAD; the paper's figures are not
+        reproduced.</p>
+      <p>Model and analysis: Richard Barker, with John M. Peters and D. Marshall Porterfield.</p>
+    </div>
+    <div>
+      <p>Code MIT; model, data and figures CC-BY-4.0. <a href="{{REPO}}">Source on GitHub</a>.</p>
+      <p>Ledger {{LedgerDigest}} · build {{GitHead}}</p>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

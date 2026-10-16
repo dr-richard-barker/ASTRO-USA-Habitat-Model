@@ -6,11 +6,15 @@
 <title>ASTRO-USA Habitat Model</title>
 <style>
   :root { --bg:#f4f6f8; --fg:#1d2733; --panel:#ffffffee; --muted:#5b6774; --accent:#2f5985; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#12161b; --fg:#e6ebf0; --panel:#1b2129ee; --muted:#9aa7b4; --accent:#7fb0e0; } }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#12161b; --fg:#e6ebf0; --panel:#1b2129ee; --muted:#9aa7b4; --accent:#7fb0e0; } }
+  :root[data-theme="dark"] { --bg:#12161b; --fg:#e6ebf0; --panel:#1b2129ee; --muted:#9aa7b4; --accent:#7fb0e0; }
   html,body { margin:0; height:100%; background:var(--bg); color:var(--fg); font:14px/1.4 system-ui,sans-serif; }
   #view { position:fixed; inset:0; }
   #panel { position:fixed; top:12px; left:12px; max-width:min(320px, calc(100vw - 24px)); background:var(--panel);
-           border-radius:10px; padding:12px 14px; box-shadow:0 2px 12px #0003; }
+           border-radius:10px; padding:12px 14px; box-shadow:0 2px 12px #0003; max-height:calc(100% - 24px); overflow:auto; }
+  #panel .head { display:flex; align-items:flex-start; gap:8px; justify-content:space-between; }
+  #panel .head button { font:inherit; font-size:12px; cursor:pointer; flex:none; }
+  #panel.collapsed > :not(.head) { display:none; }
   h1 { font-size:15px; margin:0 0 4px; } p { margin:4px 0; color:var(--muted); font-size:12px; }
   #layers label { display:block; font-size:13px; }
   #pick { margin-top:8px; font-size:13px; min-height:1.4em; color:var(--accent); }
@@ -19,6 +23,11 @@
   #collab button { margin:2px 4px 2px 0; font:inherit; cursor:pointer; }
   .collab-status { color:var(--muted); font-size:12px; margin-top:4px; }
 </style>
+<script>
+  // same light/dark choice as the project page (shared key), when the reader has made one
+  (function(){ var t = null; try { t = localStorage.getItem("barker.theme"); } catch(e) {}
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); })();
+</script>
 <script type="importmap">
 { "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
@@ -28,7 +37,8 @@
 <body>
 <div id="view"></div>
 <div id="panel">
-  <h1>ASTRO-USA Food Production Module</h1>
+  <div class="head"><h1>ASTRO-USA Food Production Module</h1>
+    <button id="panelBtn" type="button" aria-expanded="true" aria-controls="panel">Hide</button></div>
   <p><span id="intro">Generated from the sourced ledger (ICES-2026-251). Drag to orbit, scroll to zoom, click anything.</span> <a id="lodlink"></a></p>
   <div id="layers"></div>
   <button id="tourBtn" type="button" style="margin-top:8px;font:inherit;cursor:pointer" hidden>Tour the zones</button>
@@ -111,6 +121,14 @@ const meta = o => {
   return port ? { ...m, port: port.port, port_kind: port.port_kind, flow_L_min: port.flow_L_min, co2_g_day: port.co2_g_day } : m;
 };
 const SCENE = params.get("scene") === "primary" ? "primary" : "fpm";
+// the control panel folds away (and starts folded in small frames, e.g. when embedded in the project page)
+{
+  const panel = document.getElementById("panel"), btn = document.getElementById("panelBtn");
+  const fold = on => { panel.classList.toggle("collapsed", on); btn.textContent = on ? "Show controls" : "Hide";
+                       btn.setAttribute("aria-expanded", String(!on)); };
+  btn.onclick = () => fold(!panel.classList.contains("collapsed"));
+  if (innerWidth < 600 || innerHeight < 420) fold(true);
+}
 if (SCENE === "primary") {
   document.querySelector("#panel h1").textContent = "ASTRO-USA primary habitat — CONCEPT";
   document.getElementById("intro").textContent = "Design-study geometry from ledger/primary.yaml (not the team's design): " +
@@ -146,6 +164,7 @@ new GLTFLoader().load(SCENE === "primary" ? "assets/primary_concept_lod2.glb" : 
   roofCb.type = "checkbox"; roofCb.checked = true;
   roofCb.onchange = () => root.traverse(o => { if (o.isMesh && (/^roof_panel|^rail_top|^side_wall_ymin/.test(o.name) || o.userData.meta.element === "solar_array")) o.visible = roofCb.checked; });
   roofLab.append(roofCb, " Roof, solar & near wall (untick to see inside)"); lay.append(roofLab);
+  if (params.get("inside") === "1") { roofCb.checked = false; roofCb.onchange(); }   // ?inside=1 opens with the roof off
   // Mini-Hab site overlay (Fig 10, concept level): loaded on demand
   const siteLab = document.createElement("label"), siteCb = document.createElement("input");
   siteCb.type = "checkbox"; let site = null;
@@ -163,6 +182,7 @@ new GLTFLoader().load(SCENE === "primary" ? "assets/primary_concept_lod2.glb" : 
     });
   };
   siteLab.append(siteCb, " Mini-Hab site: Lab, Crew Quarters, BioWaTERR (concept)"); lay.append(siteLab);
+  if (params.get("site") === "1") { siteCb.checked = true; siteCb.onchange(); }   // ?site=1 opens with the site shown
   const ports = []; root.traverse(o => { if (o.userData?.port) ports.push({ port: o.userData.port, kind: o.userData.port_kind,
     element: o.userData.element, flow: o.userData.flow_L_min, co2: o.userData.co2_g_day }); });
   window.__habitat = { ports, lod: LOD, elements: [...new Set(Object.values(groups).flat().map(m => m.userData.meta.element))].sort(),
@@ -204,16 +224,29 @@ new GLTFLoader().load(SCENE === "primary" ? "assets/primary_concept_lod2.glb" : 
     const b = new THREE.Box3().setFromObject(g.scene);
     window.__habitat.navBox = [...b.min.toArray(), ...b.max.toArray()].map(v => +v.toFixed(3));
   }, undefined, e => console.warn("navmesh not loaded; teleport falls back to the floor", e));
+  // CFD overlays: listed in manifest order; each GLB loads on first use. Field slices (same height) are exclusive.
   fetch("assets/overlays.json").then(r => r.ok ? r.json() : []).catch(() => []).then(list => {
-    for (const ov of list) new GLTFLoader().load("assets/" + ov.file, g => {
-      g.scene.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ vertexColors:true, side:THREE.DoubleSide });
-                                              o.userData.meta = { element: ov.label, layer: "cfd" }; } });
-      g.scene.visible = false; scene.add(g.scene); window.__habitat.overlays.push(ov.label);
+    const field = [];
+    for (const ov of list) {
       const lab = document.createElement("label"), cb = document.createElement("input");
-      cb.type = "checkbox"; cb.checked = false; cb.onchange = () => { g.scene.visible = cb.checked;
-        document.getElementById("pick").textContent = cb.checked ? ov.note : ""; };
+      cb.type = "checkbox"; cb.checked = false; let obj = null;
+      const show = on => {
+        if (on && !obj) return new GLTFLoader().load("assets/" + ov.file, g => {
+          g.scene.traverse(o => { if (o.isMesh) { o.material = new THREE.MeshBasicMaterial({ vertexColors:true, side:THREE.DoubleSide });
+                                                  o.userData.meta = { element: ov.label, layer: "cfd" }; } });
+          obj = g.scene; scene.add(obj); show(cb.checked);
+        });
+        if (obj) obj.visible = on;
+      };
+      cb.onchange = () => {
+        if (cb.checked && ov.field) field.forEach(f => { if (f.cb !== cb && f.cb.checked) { f.cb.checked = false; f.show(false); } });
+        show(cb.checked);
+        document.getElementById("pick").textContent = cb.checked ? ov.note : "";
+      };
+      if (ov.field) field.push({ cb, show });
+      window.__habitat.overlays.push(ov.label);
       lab.append(cb, " CFD: " + ov.label); lay.append(lab);
-    });
+    }
   });
 });
 

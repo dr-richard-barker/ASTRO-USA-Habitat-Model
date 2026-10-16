@@ -1,0 +1,93 @@
+/* ASTRO-USA Habitat Model page, on top of the shared theme tokens (site/theme.css). No navigation rail.
+   Table, tab and note rules ported from Hardware_OSDR_review site/site.css @ 291f806 (see PORTED_FROM.md). */
+body{background:var(--bg)}
+header .wrap{padding-top:72px}
+
+/* top bar: wordmark + quick links + theme toggle */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:14px;
+  padding:10px 16px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line)}
+.wordmark{display:inline-flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.06em;color:var(--fg);
+  font-size:.86rem;white-space:nowrap}
+.wordmark:hover{text-decoration:none}
+.wordmark svg{display:block}
+.quick{display:flex;gap:14px;margin-left:auto;font-size:.88rem;overflow-x:auto;scrollbar-width:none}
+.quick::-webkit-scrollbar{display:none}
+.quick a{color:var(--muted);white-space:nowrap}
+.quick a:hover{color:var(--accent);text-decoration:none}
+.theme-btn{flex:none;width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--card);
+  color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.theme-btn:focus-visible,.btn:focus-visible,.tabs button:focus-visible,.load-viewer:focus-visible{
+  outline:2px solid var(--accent2);outline-offset:2px}
+
+.cards{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.card .stat small{font-size:.9rem;font-weight:600;color:var(--muted);margin-left:4px}
+.note{color:var(--muted);font-size:.86rem;margin-top:8px}
+.h3{margin:34px 0 6px;font-size:1.12rem}
+.finding{font-size:1.02rem;margin:8px 0 0}
+.finding strong{color:var(--fg)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.two figure{margin-top:18px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+figure.drawing img{background:#fff}
+figure.narrow img{max-width:680px;margin:0 auto}
+
+/* screening-level banner */
+.banner{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+  border-left:3px solid var(--accent);border-radius:8px;padding:12px 16px;margin-top:18px;font-size:.92rem;color:var(--muted)}
+.banner b{color:var(--fg)}
+
+/* tables: scroll inside their own box, never the page */
+.tbl{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:10px}
+.tbl table{margin:0;min-width:560px;font-size:.86rem}
+.tbl.tall{max-height:560px;overflow-y:auto}
+.tbl thead th{position:sticky;top:0;background:var(--card);z-index:1}
+.tbl td,.tbl th{white-space:nowrap}
+.tbl td:first-child{white-space:normal;min-width:180px}
+.tbl tr.rule td{border-top:2px solid var(--line)}
+.tbl td.num,.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl caption{caption-side:top;text-align:left;color:var(--muted);font-size:.84rem;padding:10px 12px 0}
+details{margin-top:18px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--card)}
+details summary{cursor:pointer;font-weight:600}
+details .tbl{background:var(--bg)}
+
+/* tabs (viewer scenes) */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 0}
+.tabs button{font:inherit;font-size:.88rem;padding:7px 12px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.tabs button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* embedded viewer: the GLBs load only after the reader asks */
+#model .wrap{max-width:1180px}
+.viewer{position:relative;margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  background:var(--card);aspect-ratio:16/9;min-height:360px}
+.viewer img.poster{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.9)}
+.viewer iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.load-viewer{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:inherit;font-weight:600;
+  padding:12px 20px;border-radius:10px;border:0;background:var(--accent);color:#fff;cursor:pointer;
+  box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 18px;margin-top:14px;
+  font-size:.9rem;color:var(--muted)}
+.controls b{color:var(--fg)}
+
+/* pipeline: an ordered list of steps that wraps on narrow screens */
+ol.flow{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;counter-reset:f}
+ol.flow li{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+  counter-increment:f}
+ol.flow li.key{border-color:var(--accent)}
+ol.flow li b{display:block;margin-bottom:4px}
+ol.flow li b::before{content:counter(f) "  ";color:var(--accent)}
+ol.flow li span{color:var(--muted);font-size:.88rem}
+@media (max-width:700px){ol.flow{grid-template-columns:1fr}}
+
+ol.inputs{margin:12px 0 0 1.2em;padding:0}
+ol.inputs li{margin:8px 0}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}
+@media (max-width:700px){.foot-grid{grid-template-columns:1fr}}
+@media (max-width:600px){
+  .wrap{padding-left:16px;padding-right:16px}
+  header .wrap{padding-top:68px}
+  .quick{display:none}
+  h1{font-size:1.65rem}
+  .viewer{aspect-ratio:auto;height:70vh}
+}

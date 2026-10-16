@@ -258,3 +258,17 @@ Plan: `~/.claude/plans/we-ve-been-developing-a-quiet-hare.md` (approved 2026-10-
 - Drawing labels in the bioreactor bay shortened (PBR, S; key in the sheet note) so they no longer overlap.
 - DXF export was not byte-reproducible (ezdxf orders some objects by set iteration): `drawings_cad` now re-runs itself
   with PYTHONHASHSEED=0.
+
+## Project page (2026-10-16, user request)
+- `make site` (habitat/site.py): `site/index.template.html` -> `docs/index.html`; shared-theme styling vendored into
+  `site/theme.css` (tokens + content styles only), no navigation rail, no brand logo; ASTRO-USA wordmark.
+- Sections: habitat, interactive model (click-to-load viewer, tabs for FPM / Mini-Hab site / primary concept),
+  analysis results, concepts (ASTRO-USA plan, one-ledger pipeline, team inputs, all assumptions). No draft PDF.
+- Numbers from `manuscript_numbers.values()` + page-only ledger values; tables converted from the manuscript's
+  generated LaTeX (converter refuses unknown LaTeX). `tests/test_site.py`: placeholders resolve, no typed decimals,
+  tables convert cleanly.
+- Viewer: k-epsilon CFD overlays (baseline age/T/CO2, half-airflow age) replace the old kOmegaSST one; field overlays
+  are exclusive and load on first use; `?inside=1`, `?site=1`; foldable panel; shared light/dark key; shared-session
+  panel hidden unless a relay is reachable (relay not deployed).
+- Published 2026-10-16 with the team's agreement (DECISIONS.md): repo recreated from the clean history, made public,
+  Pages from main /docs at https://dr-richard-barker.github.io/ASTRO-USA-Habitat-Model/

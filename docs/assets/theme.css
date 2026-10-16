@@ -1,0 +1,73 @@
+/* Shared Barker-lab Pages theme: design tokens and content styles only (no navigation rail, no brand logo).
+   Vendored from the Plant_response_to_radiation shared theme.css @ 4516d24, lines 8-76, unchanged except
+   the unused --rail token. See PORTED_FROM.md. */
+
+:root{
+  --bg:#ffffff; --fg:#1a2230; --muted:#5a6473; --line:#e5e9f0;
+  --card:#f7f9fc; --accent:#3B6EA5; --accent2:#3FB6A8; --grey:#8A8A8A;
+  --header-bg:linear-gradient(180deg, rgba(59,110,165,.35), rgba(59,110,165,.05));
+  --maxw:960px;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f141b; --fg:#e6ebf2; --muted:#9aa6b6; --line:#232c39;
+         --card:#161d27; --accent:#6ea3d8; --accent2:#54c9ba; 
+         --header-bg:linear-gradient(180deg,rgba(59,110,165,.10),transparent);}
+}
+/* Manual light/dark override — the theme toggle sets html[data-theme]. */
+html[data-theme="light"]{
+  --bg:#ffffff; --fg:#1a2230; --muted:#5a6473; --line:#e5e9f0;
+  --card:#f7f9fc; --accent:#3B6EA5; --accent2:#3FB6A8; color-scheme:light;
+  --header-bg:linear-gradient(180deg, rgba(59,110,165,.35), rgba(59,110,165,.05));
+}
+html[data-theme="dark"]{
+  --bg:#0f141b; --fg:#e6ebf2; --muted:#9aa6b6; --line:#232c39;
+  --card:#161d27; --accent:#6ea3d8; --accent2:#54c9ba; color-scheme:dark;
+  --header-bg:linear-gradient(180deg,rgba(59,110,165,.10),transparent);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+
+/* ---- content design system (unchanged from the reference page) ---- */
+header{border-bottom:1px solid var(--line);
+  background:var(--header-bg)}
+header .wrap{padding:56px 20px 40px}
+.eyebrow{color:var(--accent);font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;font-size:.78rem;margin:0 0 10px}
+h1{font-size:2.05rem;line-height:1.2;margin:0 0 12px;letter-spacing:-.01em}
+.lede{font-size:1.12rem;color:var(--muted);margin:0 0 22px;max-width:66ch}
+.meta{color:var(--muted);font-size:.92rem;margin:0 0 20px}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-block;padding:9px 16px;border-radius:8px;font-weight:600;
+  font-size:.92rem;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{text-decoration:none;filter:brightness(1.06)}
+section{padding:44px 0;border-bottom:1px solid var(--line)}
+h2{font-size:1.5rem;margin:0 0 6px;letter-spacing:-.01em;scroll-margin-top:20px}
+h2 .n{color:var(--accent);font-weight:700;margin-right:.5rem}
+.sub{color:var(--muted);margin:0 0 24px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px}
+.card h3{margin:0 0 6px;font-size:1.02rem}
+.card p{margin:0;color:var(--muted);font-size:.93rem}
+.stat{font-size:1.9rem;font-weight:700;line-height:1;margin:2px 0 8px;color:var(--accent)}
+figure{margin:26px 0 0;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:14px}
+figure img{width:100%;height:auto;border-radius:6px;display:block;background:#fff}
+figcaption{color:var(--muted);font-size:.88rem;margin-top:10px}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:999px;
+  background:rgba(63,182,168,.14);color:var(--accent2);margin-left:8px;vertical-align:middle}
+ul.clean{padding-left:1.15rem;margin:0}
+ul.clean li{margin:.35rem 0}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin-top:8px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+code{background:var(--card);border:1px solid var(--line);border-radius:5px;
+  padding:1px 6px;font-size:.86em}
+footer{padding:32px 0 48px;color:var(--muted);font-size:.9rem}
+.disc{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent2);
+  border-radius:8px;padding:12px 16px;color:var(--muted);font-size:.9rem;margin-top:18px}
