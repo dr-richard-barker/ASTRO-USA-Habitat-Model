@@ -55,14 +55,10 @@ def gci_noise(cases: list[str], rc: Path) -> dict:
     return {"T": t, "dCO2": c}
 
 
-def gci_html(gj: dict, rc: Path) -> str:
-    """GCI table (Celik et al. 2008) with two honesty flags: differences between meshes no larger than the
-    time-averaging noise, and an observed order p outside P_RANGE."""
-    cases = [f"fpm_m0_{m}_tr" for m in gj["meshes"]]
-    noise = gci_noise(cases, rc)
-    mesh_rows = "".join(f"<tr><td>{m}</td><td>{d['h_m'] * 1000:.1f}</td><td>{d['cells']:,}</td></tr>"
-                        for m, d in gj["meshes"].items())
-    rows, n_ok = [], 0
+def gci_rows(gj: dict, noise: dict) -> list[dict]:
+    """Per quantity: the GCI record plus the two honesty flags (differences within the time-averaging noise; observed
+    order p outside P_RANGE) and oscillatory convergence. Shared by the site report and the manuscript tables."""
+    out = []
     for k, r in gj["gci"].items():
         nz = noise["T"] if k.endswith("_K") else noise["dCO2"] if "dCO2" in k else None
         e21, e32 = abs(r["phi_fine"] - r["phi_medium"]), abs(r["phi_medium"] - r["phi_coarse"])
@@ -74,12 +70,25 @@ def gci_html(gj: dict, rc: Path) -> str:
             flags.append("p outside expected range")
         if r.get("convergence") == "oscillatory":
             flags.append("oscillatory")
-        ok = not flags
+        out.append({"key": k, "r": r, "p": p, "flags": flags, "ok": not flags})
+    return out
+
+
+def gci_html(gj: dict, rc: Path) -> str:
+    """GCI table (Celik et al. 2008) with two honesty flags: differences between meshes no larger than the
+    time-averaging noise, and an observed order p outside P_RANGE."""
+    cases = [f"fpm_m0_{m}_tr" for m in gj["meshes"]]
+    noise = gci_noise(cases, rc)
+    mesh_rows = "".join(f"<tr><td>{m}</td><td>{d['h_m'] * 1000:.1f}</td><td>{d['cells']:,}</td></tr>"
+                        for m, d in gj["meshes"].items())
+    rows, n_ok = [], 0
+    for q in gci_rows(gj, noise):
+        r, p, ok = q["r"], q["p"], q["ok"]
         n_ok += ok
         gci = f"{r['gci_fine_pct']:.2f}" if r.get("gci_fine_pct") == r.get("gci_fine_pct") else "-"
-        rows.append(f"<tr><td>{k}</td><td>{r['phi_fine']:.4g}</td><td>{r['phi_medium']:.4g}</td>"
+        rows.append(f"<tr><td>{q['key']}</td><td>{r['phi_fine']:.4g}</td><td>{r['phi_medium']:.4g}</td>"
                     f"<td>{r['phi_coarse']:.4g}</td><td>{(f'{p:.2f}' if p == p else '-') if p is not None else '-'}</td>"
-                    f"<td>{gci if ok else '(' + gci + ')'}</td><td>{', '.join(flags) or 'ok'}</td></tr>")
+                    f"<td>{gci if ok else '(' + gci + ')'}</td><td>{', '.join(q['flags']) or 'ok'}</td></tr>")
     spread = {k: abs(r["phi_fine"] - r["phi_coarse"]) / abs(r["phi_fine"]) * 100 for k, r in gj["gci"].items()
               if r["phi_fine"] and "U_" not in k}
     dom = max(v for k, v in spread.items() if k.startswith("domain:"))

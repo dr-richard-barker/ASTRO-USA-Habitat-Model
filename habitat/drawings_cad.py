@@ -9,6 +9,10 @@ switch them independently. Cross-sections cut the room across its width at the x
 """
 from __future__ import annotations
 
+import os
+import subprocess
+import sys
+
 import ezdxf
 import matplotlib
 
@@ -105,6 +109,11 @@ def sections_sheet(L, V) -> None:
 
 
 def main():
+    # ezdxf orders some OBJECTS entries by set iteration, so the DXF bytes depend on Python's per-run hash seed:
+    # re-run under a fixed seed so rebuilds are byte-identical.
+    if os.environ.get("PYTHONHASHSEED") != "0":
+        sys.exit(subprocess.run([sys.executable, "-m", "habitat.drawings_cad"], cwd=ROOT,
+                                env={**os.environ, "PYTHONHASHSEED": "0"}).returncode)
     matplotlib.rcParams["svg.hashsalt"] = "astro-usa-fpm"
     ezdxf.options.write_fixed_meta_data_for_testing = True   # no save timestamps / random GUIDs: rebuilds are identical
     L, parts = build()

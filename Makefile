@@ -27,6 +27,7 @@ drawings:
 report: drawings
 	uv run python -m habitat.report
 
-manuscript:   ## numbers from the result files, then the PDF (build products are git-ignored)
+manuscript:   ## numbers, figures and tables from the result files, then the PDF (the PDF is git-ignored; the figures and tables are committed)
 	uv run python -m habitat.manuscript_numbers
+	uv run python -m habitat.manuscript_figures
 	cd manuscript && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex

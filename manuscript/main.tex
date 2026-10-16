@@ -80,16 +80,46 @@ built module.
 Every dimension and load is a ledger record carrying its value, unit and either a source with a verbatim quote or a
 declared assumption with its reason; the build refuses anything else. Of the \NRecords{} records, \NSpecified{} are
 quoted from sources, \NDerived{} are derived from them (for example by vector extraction) and \NAssumed{} are
-assumptions, most of which only the ASTRO-USA team can replace. The floor plan was extracted from the vector
+assumptions, most of which only the ASTRO-USA team can replace (Table~\ref{tab:ledger}). The floor plan was extracted from the vector
 geometry of Figure~2 of \citet{peters2026astro}: all \FigTwoDims{} printed dimensions agree with their own dimension
 lines within \FigTwoMaxErrIn{}~in. Container dimensions come from a manufacturer's specification \citep{seacube40hc}
 and crew metabolic loads from BVAD Table~3-26 \citep{bvad2022}.
 
+\begin{table}[tbp]
+\centering\small
+\caption{Ledger records by file and kind. Quoted: copied verbatim from a source; derived: computed from sources by a
+stated method; user-supplied: a dated value relayed by a team member; assumed: a declared assumption with its reason.
+``Ask team'' marks assumptions the ASTRO-USA team can replace with facts.}
+\label{tab:ledger}
+\input{tables/tab_ledger}
+\end{table}
+
 \subsection{Geometry tiers}
 A parts registry turns the ledger into engineering CAD (build123d; STEP, STL, GLB and dimensioned DXF drawings), into
 CFD geometry with named patches and source zones, and into a procedural VR scene at three levels of detail with
-per-node metadata, colliders and a walkable navigation mesh. The bioreactor payloads are generic placeholders, represented
-by their outer envelopes, gas ports and loads only.
+per-node metadata, colliders and a walkable navigation mesh (Figures~\ref{fig:render} and~\ref{fig:drawing}). The
+bioreactor payloads are generic placeholders, represented by their outer envelopes, gas ports and loads only.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_render.jpg}
+\caption{Cut-away of the Food Production Module generated from the ledger (VR scene, highest level of detail), seen
+from above with the battery-side wall and the roof removed, door end on the left: the NFT hydroponic wall (left, back), Kratky tubs and battery cabinet (front left), Dutch
+buckets, the propagation rack, the bioreactor bay with its generic payload envelopes (back right) and the workbench
+(front right); the HVAC attic is beyond the right-hand partition. Plants, crew figures and fittings are illustrative.}
+\label{fig:render}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_drawing.pdf}
+\caption{General arrangement generated from the parts registry: plan and the two long-wall elevations, dimensions in
+inches. Blue boxes are equipment modelled as solid blockages in the CFD; dashed green boxes are source zones (NFT
+canopy, workbench); dash-dot orange boxes are the generic payload envelopes in the bioreactor bay (PBR,
+photobioreactor; S, sensor module); teal bars are the HVAC supply and return grilles on the attic partition. Plan
+dimensions are from Figure~2 of \citet{peters2026astro}; most equipment heights are assumptions.}
+\label{fig:drawing}
+\end{figure}
 
 \subsection{Airflow CFD}
 OpenFOAM \citep{openfoam2606} in a digest-pinned container. The living space (\BaseVolume{}~m\textsuperscript{3}
@@ -101,36 +131,122 @@ the payload-siting case was continued for three more flush times with a fresh av
 case, which was still settling, was run uninterrupted for six flush times and averaged over the last three (a
 restarted extension of it was discarded because the restart itself disturbed the solution; see Discussion). Every run must close its mass, heat,
 CO\textsubscript{2}, H\textsubscript{2}O and age-of-air balances within 1\,\% and be statistically stationary before
-any result is used. Discretisation uncertainty follows \citet{celik2008gci} on three meshes (effective cell sizes
+any result is used (Table~\ref{tab:runs}). Discretisation uncertainty follows \citet{celik2008gci} on three meshes (effective cell sizes
 \GciHFine, \GciHMed{} and \GciHCoarse~mm); a GCI is quoted only where the mesh-to-mesh differences exceed the
 time-averaging noise and the observed order is plausible.
+
+\begin{table}[tbp]
+\centering
+\caption{CFD runs. $Q$: supply airflow; $\tau_n = V/Q$: nominal time constant (one room flush time); averaged: the
+time window of the reported means, in flush times; balance error: the largest relative error of the heat, CO\textsubscript{2},
+H\textsubscript{2}O and age-of-air balances at the return grille; stationary: the two halves of the averaging window
+agree. Only runs that pass every gate are used.}
+\label{tab:runs}
+\resizebox{\textwidth}{!}{\input{tables/tab_runs}}
+\end{table}
 
 \subsection{Validation and turbulence model}
 The IEA Annex 20 two-dimensional isothermal test case \citep{nielsen1990annex20} was solved with the habitat cases'
 wall functions and schemes on three meshes and compared with laser-Doppler measurements \citep{aalborg2006lda}.
 The SST $k$--$\omega$ model \citep{menter1994} had RMS errors of \SstLo--\SstHi{} of the inlet velocity and the
 standard $k$--$\varepsilon$ model \citep{launder1974} \KeLo--\KeHi; the scenario runs therefore use
-$k$--$\varepsilon$. The buoyant variant of the benchmark has no measurements.
+$k$--$\varepsilon$ (Figure~\ref{fig:annex20}, Table~\ref{tab:annex20}). On the finest mesh both models reached the
+iteration limit before meeting the residual criterion. The $k$--$\varepsilon$ errors change little between the two finest
+meshes, whereas SST $k$--$\omega$ is still mesh-sensitive at $x = H$ (Table~\ref{tab:annex20}). The buoyant variant of the benchmark has
+no measurements.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_annex20.pdf}
+\caption{IEA Annex 20 two-dimensional isothermal test case: mean horizontal velocity, normalised by the inlet velocity
+$u_0$, along the two vertical and two horizontal measurement lines, simulated with the standard $k$--$\varepsilon$ and
+SST $k$--$\omega$ models on three meshes, against the laser-Doppler measurements \citep{aalborg2006lda}. $H$: room
+height; $h$: inlet height.}
+\label{fig:annex20}
+\end{figure}
+
+\begin{table}[tbp]
+\centering\small
+\caption{RMS difference between simulated and measured $u/u_0$ at the measured points of each line of
+Figure~\ref{fig:annex20}. Converged: the solver's residual criteria were met.}
+\label{tab:annex20}
+\input{tables/tab_annex20}
+\end{table}
 
 \section{Results}
 \subsection{Baseline}
 The time-averaged baseline (\BaseCells{} cells) closes its balances with errors of \BaseHeatErr\,\% (heat),
 \BaseCOTwoErr\,\% (CO\textsubscript{2}) and \BaseAgeErr\,\% (age of air). Across the three meshes, room-wide
-means change by at most \GciDomainMax\,\% and local values by up to \GciLocalMax\,\%; the room-mean temperature rise
-has a GCI of \GciRoomT\,\% (observed order \GciRoomP, at the lower edge of the plausible range, so a
-conservative figure). Repeating the baseline with $k$--$\varepsilon$ changes room-wide means by at most
+means change by at most \GciDomainMax\,\% and local values by up to \GciLocalMax\,\% (Table~\ref{tab:gci}). The
+room-mean temperature rise, for example, differs by \GciRoomTSpread\,\% between the finest and coarsest mesh, which is
+within the time-averaging noise, so no GCI is quoted for it; \GciNOk{} of the \GciN{} monitored quantities pass both the
+noise and the observed-order tests. Repeating the baseline with $k$--$\varepsilon$ changes room-wide means by at most
 \ModelDomainMax\,\%, local values by up to \ModelLocalMax\,\% and air speeds by up to \ModelSpeedMax\,\%: the
 room-scale picture holds under both mesh and turbulence model, while single-point values remain uncertain under both.
+Figure~\ref{fig:fields} shows the time-averaged baseline: the cold supply jet leaves the attic partition at ceiling
+height and falls to the floor part-way along the room, and the two crew plumes are the warmest, highest-CO\textsubscript{2}
+air.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_fields.pdf}
+\caption{Baseline ($k$--$\varepsilon$, coarse mesh): time-averaged air temperature, CO\textsubscript{2} above the supply
+air and age of air, (a) in plan at breathing height and (b) in a vertical section along the aisle. The supply grille
+is at the top right of each section; white areas in the plans are equipment. Colour scales span the 1st--99th
+percentiles of each field. Placeholder HVAC, adiabatic walls.}
+\label{fig:fields}
+\end{figure}
+
+\begin{table}[tbp]
+\centering
+\caption{Mesh study \citep{celik2008gci} on the time-averaged SST $k$--$\omega$ baseline at three effective cell sizes.
+$p$: observed order of accuracy. A GCI is quoted only where the mesh-to-mesh differences exceed the time-averaging
+noise (largest difference between the two halves of the averaging window at the return grille, for temperature and
+CO\textsubscript{2}) and $p$ lies between \PRangeLo{} and \PRangeHi; otherwise the reason is given. Speeds and age of air have no noise
+yardstick and are judged on $p$ alone.}
+\label{tab:gci}
+\resizebox{\textwidth}{!}{\input{tables/tab_gci}}
+\end{table}
 
 \subsection{Occupancy and airflow}
-With six crew at once the room-mean CO\textsubscript{2} rise grows $\times$\StwoCOTwoRatio{} (to \StwoCOTwo~ppm above the supply air) and the temperature rise $\times$\StwoTRatio. Halving the airflow raises the temperature rise $\times$\SfiveaTRatio, CO\textsubscript{2} $\times$\SfiveaCOTwoRatio{} and the age of air $\times$\SfiveaAgeRatio{}, more than the $\times$2 of a perfectly mixed room: mixing deteriorates at low flow. Expressed as the air-change
+Table~\ref{tab:scenarios} compares the scenarios with the baseline. With six crew at once the room-mean CO\textsubscript{2} rise grows $\times$\StwoCOTwoRatio{} (to \StwoCOTwo~ppm above the supply air) and the temperature rise $\times$\StwoTRatio. Halving the airflow raises the temperature rise $\times$\SfiveaTRatio, CO\textsubscript{2} $\times$\SfiveaCOTwoRatio{} and the age of air $\times$\SfiveaAgeRatio{}, more than the $\times$2 of a perfectly mixed room: mixing deteriorates at low flow. Expressed as the air-change
 efficiency (the nominal time constant divided by twice the room-mean age of air, 0.5 for complete mixing;
-\citealp{sandberg1983moments}), the baseline is at \BaseACE{} and half airflow at \SfiveaACE. The double-airflow case did not reach a statistically stationary state within its run and is not reported.
+\citealp{sandberg1983moments}), the baseline is at \BaseACE{} and half airflow at \SfiveaACE. Figure~\ref{fig:age} shows why: at half airflow the supply jet falls to the floor close to the partition and leaves
+the rest of the room with older air. The double-airflow case did not reach a statistically stationary state within
+its run and is not reported.
+
+\begin{table}[tbp]
+\centering\small
+\caption{Scenario results ($k$--$\varepsilon$, coarse mesh): room-mean, occupied-zone and local values relative to the
+supply air, with the ratio to the baseline in brackets. Crew 1 and 2 are the two baseline crew positions; S2 places the additional crew along the aisle.}
+\label{tab:scenarios}
+\input{tables/tab_scenarios}
+\end{table}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_age_sections.pdf}
+\caption{Time-averaged age of air in a vertical section along the aisle, divided by each run's nominal time constant
+$\tau_n$, for the baseline, six crew and half airflow. In a perfectly mixed room the ratio is 1 everywhere. Panel titles
+give the air-change efficiency of each run.}
+\label{fig:age}
+\end{figure}
 
 \subsection{Bioreactor off-gas siting}
 The placeholder bioreactor rack's off-gas adds about \OffgasMixed~ppm of CO\textsubscript{2} when mixed through the room, against
 about \BaseReturnCOTwo~ppm from two working crew; piped to the hydroponic wall it raises the canopy zone by
-\OffgasCanopyNFT~ppm ($k$--$\varepsilon$ run).
+\OffgasCanopyNFT~ppm ($k$--$\varepsilon$ run; Figure~\ref{fig:offgas}).
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_offgas.pdf}
+\caption{Payload-siting study (S6): the same bioreactor CO\textsubscript{2} release carried as three passive tracers in
+one time-averaged flow field, (a) vented into the bioreactor bay, (b) piped into the photobioreactor up to its sparger
+capacity, the remaining vessels venting into the bay, and (c) ducted to the NFT canopy; plan at canopy mid-height,
+common colour scale. The placeholder release rate sets the absolute values; the routes differ only in where the CO\textsubscript{2}
+is released.}
+\label{fig:offgas}
+\end{figure}
 
 \subsection{Lighting power}
 If the stated \LoadMax~W maximum draw includes the grow lights, the \WallArea~m\textsuperscript{2} NFT wall cannot exceed
@@ -141,11 +257,33 @@ range of BVAD's lettuce crop model \citep{bvad2022}; \LightPowerNeeded~W would b
 \subsection{HVAC failure}
 With the HVAC off and the door shut, CO\textsubscript{2} in the \SthreeVolume~m\textsuperscript{3} of air rises
 from the outdoor level (\OutdoorCOTwo~ppm) \citep{noaa2026co2} to the OSHA permissible exposure limit
-\citep{osha1910} in \SthreeSixCrew~h with six crew and \SthreeTwoCrew~h with two if the container is airtight.
+\citep{osha1910} in \SthreeSixCrew~h with six crew and \SthreeTwoCrew~h with two if the container is airtight;
+leakage slows the rise and, at high enough rates, caps it below the limit (Figure~\ref{fig:s3}).
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.75\textwidth]{figures/fig_s3.pdf}
+\caption{CO\textsubscript{2} with the HVAC off and the door shut: a well-mixed model of the module's air volume with
+two or six crew at BVAD's awake CO\textsubscript{2} output \citep{bvad2022}, starting from outdoor air
+\citep{noaa2026co2}, for three leakage rates. Plants are not included. The horizontal line is the OSHA permissible
+exposure limit, an eight-hour time-weighted average \citep{osha1910}.}
+\label{fig:s3}
+\end{figure}
 
 \subsection{Layout and sensors}
 The narrowest clear aisle is \AisleMin~m; keeping clear of equipment leaves \WalkArea{} of the
-\FloorArea~m\textsuperscript{2} floor walkable. Scoring every wall position against the occupied-zone mean over \SensorRuns{} passing $k$--$\varepsilon$ runs, the most representative single sensor sits on \SensorWhere{} at \SensorZ~m, within \SensorT~K and \SensorCOTwo\,\% (CO\textsubscript{2} excess) in every run and \SensorClear~m from the nearest growing system.
+\FloorArea~m\textsuperscript{2} floor walkable. Scoring every wall position against the occupied-zone mean over \SensorRuns{} passing $k$--$\varepsilon$ runs, the most representative single sensor sits on \SensorWhere{} at \SensorZ~m, within \SensorT~K and \SensorCOTwo\,\% (CO\textsubscript{2} excess) in every run and \SensorClear~m from the nearest growing system (Table~\ref{tab:sensors}).
+
+\begin{table}[tbp]
+\centering\small
+\caption{The five most representative wall positions for a single room sensor, ranked by their worst error across the
+\SensorRuns{} passing $k$--$\varepsilon$ runs. Error: sensor reading minus the occupied-zone volume mean of the same run
+(temperature in K; CO\textsubscript{2} as a percentage of the occupied-zone excess over the supply air). Positions within
+the exclusion margin of plants, water culture, the bioreactor bay or payloads are excluded. Clearance: distance to the
+nearest such part.}
+\label{tab:sensors}
+\resizebox{\textwidth}{!}{\input{tables/tab_sensors}}
+\end{table}
 
 \section{Discussion}
 \paragraph{What the model can say now.} With the HVAC unit, lighting and envelope still unknown, the model is a

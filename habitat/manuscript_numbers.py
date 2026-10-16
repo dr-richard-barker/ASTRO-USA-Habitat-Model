@@ -52,8 +52,12 @@ def main() -> None:
         m.update({"GciHFine": f"{hs[0]:.1f}", "GciHMed": f"{hs[1]:.1f}", "GciHCoarse": f"{hs[2]:.1f}",
                   "GciDomainMax": f"{max(v for k, v in sp.items() if k.startswith('domain:')):.1f}",
                   "GciLocalMax": f"{max(v for k, v in sp.items() if not k.startswith('domain:')):.0f}",
-                  "GciRoomT": f"{gci['gci']['domain:T_excess_K']['gci_fine_pct']:.1f}",
-                  "GciRoomP": f"{gci['gci']['domain:T_excess_K']['p']:.2f}"})
+                  "GciRoomTSpread": f"{sp['domain:T_excess_K']:.1f}"})
+        from .report import gci_noise, gci_rows
+        rows = gci_rows(gci, gci_noise([f"fpm_m0_{k}_tr" for k in gci["meshes"]], ROOT / "results" / "cfd"))
+        from .report import P_RANGE
+        m.update({"GciN": len(rows), "GciNOk": sum(r["ok"] for r in rows), "PRangeLo": f"{P_RANGE[0]:g}",
+                  "PRangeHi": f"{P_RANGE[1]:g}"})
     a20 = _j("results/cfd/annex20.json")
     if a20:
         def rng(model):

@@ -247,3 +247,14 @@ Plan: `~/.claude/plans/we-ve-been-developing-a-quiet-hare.md` (approved 2026-10-
 - Local run directories were relabelled (identifiers only, no field values changed; the regenerated S6 siting JSON
   matches the previous one value for value) instead of re-solved. The superseded kOmegaSST S6 outputs were removed.
 - The site report no longer loads an external theme.
+
+## Manuscript figures and tables (2026-10-16)
+- `habitat/manuscript_figures.py` (run by `make manuscript`) writes 7 figures (`manuscript/figures/`) and 6 tables
+  (`manuscript/tables/`) from the result files and the local run fields; the field figures are skipped, and the committed
+  files kept, where `runs/` is absent. Palette: reference categorical slots 1-3, validated all-pairs; every series also
+  has a line style and a legend entry.
+- Correction: the manuscript had quoted a GCI for the room-mean temperature rise, but its mesh differences are within the
+  time-averaging noise; the text now gives the spread instead and the count of quotable quantities (macros `GciNOk`/`GciN`).
+- Drawing labels in the bioreactor bay shortened (PBR, S; key in the sheet note) so they no longer overlap.
+- DXF export was not byte-reproducible (ezdxf orders some objects by set iteration): `drawings_cad` now re-runs itself
+  with PYTHONHASHSEED=0.
