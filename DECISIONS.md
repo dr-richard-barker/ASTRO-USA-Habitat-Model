@@ -12,3 +12,4 @@
 | 2026-10-12 | Steady compressible buoyantSimpleFoam + incompressiblePerfectGas + kOmegaSST; scalars relative to supply air; turbulent scalar diffusivity (alphaD/alphaDt) | Plan review items 1-4 | Claude (approved plan) |
 | 2026-10-12 | Floor plan taken from the PDF's vector geometry, not traced; frame: model y = 92 in - printed y (right-handed, z up) | Exactness; mirrored-plan test guards the flip | Claude |
 | 2026-10-12 | Heated blockages deposit heat in a one-cell fluid shell; case asserts source totals equal the registry | A dropped source still "balances" (found in M0: 122.5 W missing) | Claude |
+| 2026-10-16 | Public release: repo made public and the project page published on GitHub Pages | ASTRO-USA team agreed (relayed by R. Barker after speaking to the team); repo recreated first so no pre-rewrite commits remain on GitHub | R. Barker |
