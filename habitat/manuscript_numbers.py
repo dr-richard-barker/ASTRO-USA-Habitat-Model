@@ -29,6 +29,10 @@ def main() -> None:
     for r in L.records.values():
         kinds[r["kind"]] = kinds.get(r["kind"], 0) + 1
     m.update({"NSpecified": kinds.get("specified", 0), "NDerived": kinds.get("derived", 0)})
+    m.update({"NTowers": f"{L.num('fpm.hydroponics.towers', '-'):.0f}",
+              "NSitesPerTower": f"{L.num('fpm.hydroponics.sites_per_tower', '-'):.0f}",
+              "NSites": f"{L.num('fpm.hydroponics.towers', '-') * L.num('fpm.hydroponics.sites_per_tower', '-'):.0f}",
+              "LoadAvg": f"{L.num('fpm.electrical.load_average', 'W'):.0f}"})
     fig2 = _j("sources/fig2_geometry.json")
     if fig2:
         m["FigTwoMaxErrIn"] = f"{fig2['max_dimension_error_in']:.3f}"
@@ -87,6 +91,13 @@ def main() -> None:
                 m[f"{tag}COTwoRatio"] = f"{r['domain:dCO2_ppm']['ratio']:.2f}"
                 m[f"{tag}AgeRatio"] = f"{r['domain:AoA_s']['ratio']:.2f}"
                 m[f"{tag}COTwo"] = f"{r['domain:dCO2_ppm']['scenario']:.0f}"
+        # air-change efficiency = nominal time constant / (2 x room-mean age of air); 0.5 for complete mixing
+        for key, tag, case in (("base", "Base", "fpm_m0_coarse_ke_tr"), ("s5a", "Sfivea", "fpm_s5a_coarse_ke_tr")):
+            meta = _j(f"runs/{case}/case_meta.json")
+            if meta and (key == "base" or key in sc["scenarios"]):
+                age = (sc["scenarios"]["s5a"]["rows"]["domain:AoA_s"]["scenario"] if key == "s5a"
+                       else next(iter(sc["scenarios"].values()))["rows"]["domain:AoA_s"]["base"])
+                m[f"{tag}ACE"] = f"{meta['transient']['t_flush_s'] / (2 * age):.2f}"
     sp = _j("results/cfd/sensor_placement.json")
     if sp and sp.get("ranked"):
         best = sp["ranked"][0]
